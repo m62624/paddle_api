@@ -5,9 +5,11 @@ use std::env;
 /// Environment variables:
 /// `PADDLE_API_URL`
 /// `PADDLE_API_AUTH`
+/// `PADDLE_PRODUCT_ID`
 pub struct Config {
     pub url: String,
     pub auth: String,
+    product_id: Option<String>,
 }
 
 impl Config {
@@ -15,7 +17,17 @@ impl Config {
         Ok(Self {
             url: env::var("PADDLE_API_URL")?,
             auth: env::var("PADDLE_API_AUTH")?,
+            product_id: None,
         })
+    }
+
+    pub fn set_product_id(mut self, product_id: String) -> Self {
+        self.product_id = Some(product_id);
+        self
+    }
+
+    pub fn product_id(&self) -> Option<&str> {
+        self.product_id.as_deref()
     }
 }
 
@@ -70,11 +82,14 @@ mod tests {
         #[tokio::test]
         async fn get_product_t_0() -> Result<(), Box<dyn std::error::Error>> {
             let config = Config::new()?;
+            // let config = Config::new()?.set_product_id("some id".to_string());
+
             let client = Client::new(&config.url, &config.auth)?;
-            let x = client
-                .get_product("", None)
-                .await?;
-            println!("{:#?}", x);
+
+            if let Some(product_id) = config.product_id() {
+                client.get_product(product_id, None).await?;
+            }
+
             Ok(())
         }
     }
