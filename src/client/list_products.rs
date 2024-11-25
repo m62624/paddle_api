@@ -1,8 +1,6 @@
 use super::Client;
 use super::PaddleError;
 use crate::entities::product::ProductResponse;
-use reqwest::header::AUTHORIZATION;
-use reqwest::header::{HeaderMap, HeaderValue};
 use serde::Deserialize;
 
 // https://developer.paddle.com/api-reference/products/list-products#query-parameters
@@ -113,16 +111,6 @@ impl<'a> Client<'a> {
     ) -> Result<ListProductsResponse, PaddleError> {
         let mut url = self.url.join("products")?;
 
-        let mut headers = HeaderMap::new();
-        headers.insert(
-            AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", self.auth))?,
-        );
-
-        if let Some(version) = &self.paddle_version {
-            headers.insert("Paddle-Version", HeaderValue::from_str(version)?);
-        }
-
         if let Some(after) = params.after {
             url.query_pairs_mut().append_pair("after", &after);
         }
@@ -155,7 +143,7 @@ impl<'a> Client<'a> {
         Ok(self
             .client
             .get(url)
-            .headers(headers)
+            .headers(self.default_headers()?)
             .send()
             .await?
             .error_for_status()?

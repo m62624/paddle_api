@@ -45,19 +45,6 @@ impl<'a> Client<'a> {
     ) -> Result<GetProductResponse, crate::error::PaddleError> {
         let mut url = self.url.join(&format!("products/{}", id))?;
 
-        let mut headers = reqwest::header::HeaderMap::new();
-        headers.insert(
-            reqwest::header::AUTHORIZATION,
-            reqwest::header::HeaderValue::from_str(&format!("Bearer {}", self.auth))?,
-        );
-
-        if let Some(version) = &self.paddle_version {
-            headers.insert(
-                "Paddle-Version",
-                reqwest::header::HeaderValue::from_str(version)?,
-            );
-        }
-
         // query
         if let Some(include) = include {
             url.query_pairs_mut()
@@ -67,7 +54,7 @@ impl<'a> Client<'a> {
         let response = self
             .client
             .get(url)
-            .headers(headers)
+            .headers(self.default_headers()?)
             .send()
             .await?
             .error_for_status()?

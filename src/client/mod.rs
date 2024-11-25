@@ -46,4 +46,28 @@ impl<'a> Client<'a> {
     pub fn set_paddle_version(&mut self, version: &str) {
         self.paddle_version = Some(version.to_string());
     }
+
+    /// Default headers for Paddle API requests
+    fn default_headers(&self) -> Result<reqwest::header::HeaderMap, PaddleError> {
+        let mut headers = reqwest::header::HeaderMap::new();
+
+        headers.insert(
+            reqwest::header::CONTENT_TYPE,
+            reqwest::header::HeaderValue::from_str("application/json")?,
+        );
+
+        headers.insert(
+            reqwest::header::AUTHORIZATION,
+            reqwest::header::HeaderValue::from_str(&format!("Bearer {}", self.auth))?,
+        );
+
+        if let Some(version) = &self.paddle_version {
+            headers.insert(
+                "Paddle-Version",
+                reqwest::header::HeaderValue::from_str(version)?,
+            );
+        }
+
+        Ok(headers)
+    }
 }

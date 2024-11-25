@@ -1,5 +1,4 @@
 use super::*;
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 
 impl<'a> Client<'a> {
     /// You can test your authentication credentials
@@ -8,20 +7,10 @@ impl<'a> Client<'a> {
     /// `403 Forbidden` will be returned if the authentication fails.
     // https://developer.paddle.com/api-reference/about/authentication#test-authentication
     pub async fn test_authentication(&self) -> Result<(), PaddleError> {
-        let mut headers = HeaderMap::new();
-        headers.insert(
-            AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", self.auth))?,
-        );
-
-        if let Some(version) = &self.paddle_version {
-            headers.insert("Paddle-Version", HeaderValue::from_str(version)?);
-        }
-
         Self::include_data_meta(
             self.client
                 .get(self.url.join("event-types")?)
-                .headers(headers)
+                .headers(self.default_headers()?)
                 .send()
                 .await?
                 .error_for_status()?
