@@ -21,6 +21,7 @@ impl Config {
         })
     }
 
+    #[allow(dead_code)]
     pub fn set_product_id(mut self, product_id: String) -> Self {
         self.product_id = Some(product_id);
         self
@@ -36,7 +37,7 @@ mod tests {
 
     use crate::entities::product::list_products::ListProductsParams;
     use crate::entities::product::ProductData;
-    use crate::entities::product::{ProductTaxCategory};
+    use crate::entities::product::ProductTaxCategory;
 
     use super::*;
 
@@ -79,8 +80,8 @@ mod tests {
         async fn list_products_t_0() -> Result<(), Box<dyn std::error::Error>> {
             let config = Config::new()?;
             let client = Client::new(&config.url, &config.auth)?;
-            let x = client.list_products(ListProductsParams::default()).await?;
-            println!("{:#?}", x);
+            let r = client.list_products(ListProductsParams::default()).await?;
+            println!("{:#?}", r);
             Ok(())
         }
 
@@ -92,7 +93,8 @@ mod tests {
             let client = Client::new(&config.url, &config.auth)?;
 
             if let Some(product_id) = config.product_id() {
-                client.get_product(product_id, None).await?;
+               let r = client.get_product(product_id, None).await?;
+               println!("{:#?}", r);
             }
 
             Ok(())
@@ -113,7 +115,10 @@ mod tests {
             .set_image_url("https://paddle.s3.amazonaws.com/user/165798/bT1XUOJAQhOUxGs83cbk_pro.png".to_string())
             .set_custom_data(serde_json::json!({"key": "value"}));
 
-            client.create_product(product_data).await?;
+           let r = client.create_product(product_data).await?;
+
+            println!("{:#?}", r);
+
             Ok(())
         }
     }
