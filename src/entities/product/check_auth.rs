@@ -1,6 +1,6 @@
 use serde_json::Value;
 
-use crate::Client;
+use crate::{error::PaddleError, Client};
 
 impl Client {
     /// You can test your authentication credentials
@@ -11,14 +11,16 @@ impl Client {
     /// [Official document](https://developer.paddle.com/api-reference/about/authentication#test-authentication)
     pub async fn test_authentication(&self) -> Result<(), anyhow::Error> {
         Self::include_data_meta(
-            self.client
-                .get(self.url.join("event-types")?)
-                .headers(self.default_headers()?)
-                .send()
-                .await?
-                .error_for_status()?
-                .text()
-                .await?,
+            PaddleError::handle_response(
+                self.client
+                    .get(self.url.join("event-types")?)
+                    .headers(self.default_headers()?)
+                    .send()
+                    .await?,
+            )
+            .await?
+            .text()
+            .await?,
         )
     }
 

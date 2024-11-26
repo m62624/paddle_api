@@ -1,4 +1,5 @@
 use crate::entities::product::GetProductResponse;
+use crate::error::PaddleError;
 use crate::Client;
 
 impl Client {
@@ -18,15 +19,16 @@ impl Client {
                 .extend_pairs(include.iter().map(|item| ("include", item)));
         }
 
-        let response = self
-            .client
-            .get(url)
-            .headers(self.default_headers()?)
-            .send()
-            .await?
-            .error_for_status()?
-            .json::<GetProductResponse>()
-            .await?;
+        let response = PaddleError::handle_response(
+            self.client
+                .get(url)
+                .headers(self.default_headers()?)
+                .send()
+                .await?,
+        )
+        .await?
+        .json::<GetProductResponse>()
+        .await?;
 
         Ok(response)
     }

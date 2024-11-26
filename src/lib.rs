@@ -1,4 +1,5 @@
 pub mod entities;
+pub mod error;
 
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::Client as RClient;

@@ -35,6 +35,7 @@ pub struct ProductData {
     p_type: Option<ProductType>,
     image_url: Option<String>,
     custom_data: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     status: Option<ProductStatus>,
 }
 
@@ -61,8 +62,7 @@ pub struct ProductResponse {
 
 /// The meta object contains additional information about the request.
 // https://developer.paddle.com/api-reference/products/get-product#response
-#[derive(Deserialize)]
-#[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
+#[derive(Deserialize, Debug)]
 pub struct Meta {
     request_id: String,
 }

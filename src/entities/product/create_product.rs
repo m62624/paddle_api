@@ -1,4 +1,5 @@
 use crate::entities::product::GetProductResponse;
+use crate::error::PaddleError;
 use crate::Client;
 
 use super::CreateProductRequest;
@@ -15,16 +16,17 @@ impl Client {
     ) -> Result<GetProductResponse, anyhow::Error> {
         let url = self.url.join("products")?;
 
-        let response = self
-            .client
-            .post(url)
-            .headers(self.default_headers()?)
-            .json(&product_data)
-            .send()
-            .await?
-            .error_for_status()?
-            .json::<GetProductResponse>()
-            .await?;
+        let response = PaddleError::handle_response(
+            self.client
+                .post(url)
+                .headers(self.default_headers()?)
+                .json(&product_data)
+                .send()
+                .await?,
+        )
+        .await?
+        .json::<GetProductResponse>()
+        .await?;
 
         Ok(response)
     }

@@ -1,4 +1,5 @@
 use crate::entities::product::ProductResponse;
+use crate::error::PaddleError;
 use crate::Client;
 use serde::Deserialize;
 
@@ -157,14 +158,15 @@ impl Client {
                 .append_pair("type", &p_type.to_string());
         }
 
-        Ok(self
-            .client
-            .get(url)
-            .headers(self.default_headers()?)
-            .send()
-            .await?
-            .error_for_status()?
-            .json()
-            .await?)
+        Ok(PaddleError::handle_response(
+            self.client
+                .get(url)
+                .headers(self.default_headers()?)
+                .send()
+                .await?,
+        )
+        .await?
+        .json()
+        .await?)
     }
 }
