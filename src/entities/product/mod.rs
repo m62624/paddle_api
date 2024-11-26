@@ -10,7 +10,7 @@ mod unit_tests;
 use serde::{Deserialize, Serialize};
 
 // https://developer.paddle.com/api-reference/products/overview
-#[derive(Serialize)]
+#[derive(Serialize, Default)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub struct ProductData {
     name: String,
@@ -65,18 +65,20 @@ pub enum ProductTaxCategory {
     WebsiteHosting,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub enum ProductType {
     #[serde(rename = "custom")]
     Custom,
+    #[default]
     #[serde(rename = "standard")]
     Standard,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub enum ProductStatus {
+    #[default]
     #[serde(rename = "active")]
     Active,
     #[serde(rename = "archived")]
