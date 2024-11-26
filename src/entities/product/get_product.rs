@@ -2,9 +2,9 @@ use crate::entities::product::GetProductResponse;
 use crate::Client;
 
 impl<'a> Client<'a> {
-    /// Get a single product by its ID.
+    /// Get a single product by its ID (GET).
     ///
-    /// https://developer.paddle.com/api-reference/product-api/products/getproduct
+    /// [Official document](https://developer.paddle.com/api-reference/products/get-product)
     pub async fn get_product(
         &self,
         id: &str,

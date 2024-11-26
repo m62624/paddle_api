@@ -82,6 +82,7 @@ mod tests {
             let client = Client::new(&config.url, &config.auth)?;
             let r = client.list_products(ListProductsParams::default()).await?;
             println!("{:#?}", r);
+
             Ok(())
         }
 

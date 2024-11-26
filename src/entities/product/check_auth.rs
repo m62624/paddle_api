@@ -7,7 +7,8 @@ impl<'a> Client<'a> {
     /// by making a request to the Paddle API.
     ///
     /// `403 Forbidden` will be returned if the authentication fails.
-    // https://developer.paddle.com/api-reference/about/authentication#test-authentication
+    ///
+    /// [Official document](https://developer.paddle.com/api-reference/about/authentication#test-authentication)
     pub async fn test_authentication(&self) -> Result<(), anyhow::Error> {
         Self::include_data_meta(
             self.client

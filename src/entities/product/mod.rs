@@ -10,20 +10,24 @@ mod unit_tests;
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Serialize};
 
+/// The request to create a new product.
 #[derive(Serialize)]
 pub struct CreateProductRequest {
     #[serde(flatten)]
     pub data: ProductData,
 }
 
+/// The request to update a product.
 pub struct UpdateProductRequest {
     pub data: ProductData,
 }
 
+/// Product entities describe the items that customers can purchase. They hold high-level product attributes.
 // https://developer.paddle.com/api-reference/products/overview
 #[derive(Serialize, Deserialize)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub struct ProductData {
+    /// Name of this product.
     name: String,
     tax_category: Option<ProductTaxCategory>,
     description: Option<String>,
@@ -34,6 +38,7 @@ pub struct ProductData {
     status: Option<ProductStatus>,
 }
 
+/// The response to a successful product creation request.
 // https://developer.paddle.com/api-reference/products/get-product#response
 #[derive(Deserialize)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
@@ -41,7 +46,7 @@ pub struct GetProductResponse {
     data: ProductResponse,
     meta: Meta,
 }
-
+/// The response to a successful list products request.
 // https://developer.paddle.com/api-reference/products/overview
 #[derive(Deserialize)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
@@ -54,6 +59,7 @@ pub struct ProductResponse {
     updated_at: String,
 }
 
+/// The meta object contains additional information about the request.
 // https://developer.paddle.com/api-reference/products/get-product#response
 #[derive(Deserialize)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
@@ -61,7 +67,9 @@ pub struct Meta {
     request_id: String,
 }
 
-// https://developer.paddle.com/api-reference/products/list-products
+/// Tax category for this product. Used for charging the correct rate of tax.
+/// Selected tax category must be enabled on your Paddle account.
+/// [Official document](https://developer.paddle.com/api-reference/products/list-products)
 #[derive(Serialize, Deserialize)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub enum ProductTaxCategory {
@@ -156,32 +164,8 @@ impl ProductResponse {
         &self.id
     }
 
-    pub fn get_name(&self) -> &str {
-        &self.data.name
-    }
-
-    pub fn get_description(&self) -> Option<&str> {
-        self.data.description.as_deref()
-    }
-
-    pub fn get_p_type(&self) -> Option<&ProductType> {
-        self.data.p_type.as_ref()
-    }
-
-    pub fn get_tax_category(&self) -> Option<&ProductTaxCategory> {
-        self.data.tax_category.as_ref()
-    }
-
-    pub fn get_image_url(&self) -> Option<&str> {
-        self.data.image_url.as_deref()
-    }
-
-    pub fn get_custom_data(&self) -> Option<&serde_json::Value> {
-        self.data.custom_data.as_ref()
-    }
-
-    pub fn get_status(&self) -> Option<&ProductStatus> {
-        self.data.status.as_ref()
+    pub fn get_data(&self) -> &ProductData {
+        &self.data
     }
 
     pub fn get_import_meta(&self) -> Option<&serde_json::Value> {

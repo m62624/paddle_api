@@ -4,11 +4,11 @@ use crate::Client;
 use super::UpdateProductRequest;
 
 impl<'a> Client<'a> {
-    /// Update a product by its ID.
+    /// Update a product by its ID (PATCH).
     ///
     /// If successful, your response includes a copy of the updated product entity.
     ///
-    // https://developer.paddle.com/api-reference/products/update-product
+    /// [Official document](https://developer.paddle.com/api-reference/products/update-product)
     pub async fn update_product(
         &self,
         product_id: &str,

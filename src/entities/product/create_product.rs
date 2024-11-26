@@ -4,11 +4,11 @@ use crate::Client;
 use super::CreateProductRequest;
 
 impl<'a> Client<'a> {
-    /// Create a new product.
+    /// Create a new product (POST).
     ///
     /// If successful, your response includes a copy of the new product entity.
     ///
-    // https://developer.paddle.com/api-reference/products/create-product
+    /// [Official document](https://developer.paddle.com/api-reference/products/create-product)
     pub async fn create_product(
         &self,
         product_data: CreateProductRequest,
