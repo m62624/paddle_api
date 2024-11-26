@@ -1,18 +1,16 @@
 pub mod check_auth;
-pub mod create_product;
-pub mod get_product;
-pub mod list_products;
-pub mod update_product;
+pub mod create;
+pub mod get;
+pub mod list;
+pub mod update;
 
 use serde_with::skip_serializing_none;
 
-#[cfg(test)]
-mod unit_tests;
 
 use serde::{Deserialize, Serialize};
 
-use super::price::Price;
-use super::{EntityStatus, EntityType, Meta};
+use crate::entities::price::Price;
+use super::{EntityBase, EntityBaseGettersSetters, EntityStatus, EntityType, Meta};
 
 /// The request to create a new product.
 #[derive(Serialize)]
@@ -37,18 +35,10 @@ pub struct ProductResponse {
 #[derive(Serialize, Deserialize, Default)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub struct Product {
-    id: Option<String>,
-    name: String,
-    description: Option<String>,
-    #[serde(rename = "type")]
-    p_type: Option<super::EntityType>,
+    #[serde(flatten)]
+    base: EntityBase,
     tax_category: Option<ProductTaxCategory>,
     image_url: Option<String>,
-    status: Option<EntityStatus>,
-    custom_data: Option<serde_json::Value>,
-    import_meta: Option<serde_json::Value>,
-    created_at: Option<String>,
-    updated_at: Option<String>,
     prices: Option<Vec<Price>>,
 }
 
@@ -83,12 +73,13 @@ impl CreateProductRequest {
         Self {
             product_data: Product {
                 // required
-                name: name.into(),
+                base: EntityBase{
+                    name: Some(name.into()),
+                    ..Default::default()
+                },
                 // required
                 tax_category: Some(tax_category),
-                description: None,
                 // default
-                p_type: Some(EntityType::Standard),
                 ..Default::default()
             },
         }
@@ -105,45 +96,106 @@ impl ProductResponse {
     }
 }
 
+impl EntityBaseGettersSetters for Product{
+    fn id(&self) -> Option<&str> {
+        self.base.id.as_deref()
+    }
+
+    fn name(&self) -> Option<&str> {
+        self.base.name.as_deref()
+    }
+
+    fn set_name<T: Into<String>>(self, name: T) -> Self {
+        Self {
+            base: EntityBase {
+                name: Some(name.into()),
+                ..self.base
+            },
+            ..self
+        }
+    }
+
+    fn description(&self) -> Option<&str> {
+         self.base.description.as_deref()
+    }
+
+    fn set_description<T: Into<String>>(self, description: T) -> Self {
+        Self {
+            base: EntityBase {
+                description: Some(description.into()),
+                ..self.base
+            },
+            ..self
+        }
+    }
+
+    fn p_type(&self) -> Option<&EntityType> {
+        self.base.p_type.as_ref()
+    }
+
+    fn set_p_type(self, p_type: EntityType) -> Self {
+        Self {
+            base: EntityBase {
+                p_type: Some(p_type),
+                ..self.base
+            },
+            ..self
+        }
+    }
+
+    fn status(&self) -> Option<&EntityStatus> {
+        self.base.status.as_ref()
+    }
+
+    fn set_status(self, status: EntityStatus) -> Self {
+        Self {
+            base: EntityBase {
+                status: Some(status),
+                ..self.base
+            },
+            ..self
+        }
+    }
+
+    fn custom_data(&self) -> Option<&serde_json::Value> {
+        self.base.custom_data.as_ref()
+    }
+
+    fn set_custom_data(self, custom_data: serde_json::Value) -> Self {
+        Self {
+            base: EntityBase {
+                custom_data: Some(custom_data),
+                ..self.base
+            },
+            ..self
+        }
+    }
+
+    fn import_meta(&self) -> Option<&serde_json::Value> {
+        self.base.import_meta.as_ref()
+    }
+
+    fn created_at(&self) -> Option<&str> {
+        self.base.created_at.as_deref()
+    }
+
+    fn updated_at(&self) -> Option<&str> {
+        self.base.updated_at.as_deref()
+    }
+}
+
 impl Product {
     pub fn new<T: Into<String>>(name: T) -> Self {
         Self {
-            name: name.into(),
+            base: EntityBase{
+                name: Some(name.into()),
+                ..Default::default()
+            },
             ..Default::default()
         }
     }
 
-    pub fn id(&self) -> Option<&str> {
-        self.id.as_deref()
-    }
-
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-
-    pub fn set_name<T: Into<String>>(mut self, name: T) -> Self {
-        self.name = name.into();
-        self
-    }
-
-    pub fn description(&self) -> Option<&str> {
-        self.description.as_deref()
-    }
-
-    pub fn set_description<T: Into<String>>(mut self, description: T) -> Self {
-        self.description = Some(description.into());
-        self
-    }
-
-    pub fn p_type(&self) -> Option<&EntityType> {
-        self.p_type.as_ref()
-    }
-
-    pub fn set_type(mut self, p_type: EntityType) -> Self {
-        self.p_type = Some(p_type);
-        self
-    }
-
+   
     pub fn tax_category(&self) -> Option<&ProductTaxCategory> {
         self.tax_category.as_ref()
     }
@@ -162,39 +214,10 @@ impl Product {
         self
     }
 
-    pub fn custom_data(&self) -> Option<&serde_json::Value> {
-        self.custom_data.as_ref()
-    }
-
-    pub fn set_custom_data(mut self, custom_data: serde_json::Value) -> Self {
-        self.custom_data = Some(custom_data);
-        self
-    }
-
-    pub fn status(&self) -> Option<&EntityStatus> {
-        self.status.as_ref()
-    }
-
-    pub fn set_status(mut self, status: EntityStatus) -> Self {
-        self.status = Some(status);
-        self
-    }
-
-    pub fn import_meta(&self) -> Option<&serde_json::Value> {
-        self.import_meta.as_ref()
-    }
-
     pub fn prices(&self) -> Option<&Vec<Price>> {
         self.prices.as_ref()
     }
 
-    pub fn created_at(&self) -> Option<&str> {
-        self.created_at.as_deref()
-    }
-
-    pub fn updated_at(&self) -> Option<&str> {
-        self.updated_at.as_deref()
-    }
 }
 
 impl std::fmt::Display for EntityStatus {

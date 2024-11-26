@@ -1,9 +1,8 @@
-use super::list_products::ListProductsParams;
-use crate::entities::product::*;
-
-use crate::Client;
+use paddle_api::Client;
 use once_cell::sync::Lazy;
 use std::{env, sync::Arc};
+
+use paddle_api::entities::{product::{list::ListProductsParams, CreateProductRequest, Product, ProductTaxCategory}, EntityBaseGettersSetters, EntityStatus};
 
 /// Environment variables:
 /// `PADDLE_API_URL`
@@ -29,7 +28,12 @@ impl Config {
 pub static CONFIG: Lazy<Arc<Config>> =
     Lazy::new(|| Arc::new(Config::new().expect("Failed to load config")));
 
-#[tokio::test]
+#[cfg(test)]
+mod tests {
+  
+    use super::*;
+
+    #[tokio::test]
 async fn test_auth_t_0() -> Result<(), Box<dyn std::error::Error>> {
     let config = CONFIG.clone();
     let client = Client::new(&config.url, &config.auth)?;
@@ -129,3 +133,6 @@ async fn test_create_product_t_0() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+}
+

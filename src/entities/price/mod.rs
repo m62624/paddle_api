@@ -1,9 +1,9 @@
-pub mod create_price;
-pub mod get_price;
-pub mod list_prices;
-pub mod update_price;
+pub mod create;
+pub mod get;
+pub mod list;
+pub mod update;
 
-use super::{EntityStatus, EntityType, Meta};
+use super::{EntityBase, EntityBaseGettersSetters, EntityStatus, EntityType, Meta};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
@@ -25,24 +25,14 @@ pub struct PriceResponse {
 #[derive(Serialize, Deserialize, Default)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub struct Price {
-    id: Option<String>,
+    base: EntityBase,
     product_id: Option<String>,
-    description: Option<String>,
     unit_price: Option<UnitPrice>,
-    #[serde(rename = "type")]
-    p_type: Option<EntityType>,
-    name: Option<String>,
     billing_cycle: Option<BillingCycle>,
     trial_period: Option<TrialPeriod>,
     tax_mode: Option<TaxMode>,
     unit_price_overrides: Option<Vec<UnitPriceOverride>>,
     quantity: Option<Quantity>,
-    status: Option<EntityStatus>,
-    custom_data: Option<serde_json::Value>,
-    #[serde(rename = "import_meta")]
-    import_meta: Option<ImportMeta>,
-    created_at: Option<String>,
-    updated_at: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -117,11 +107,12 @@ impl CreatePriceRequest {
     pub fn new<T: Into<String>>(description: T, product_id: String, unit_price: UnitPrice) -> Self {
         Self {
             product_data: Price {
-                description: Some(description.into()),
+                base: EntityBase {
+                    description: Some(description.into()),
+                    ..Default::default()
+                },
                 product_id: Some(product_id),
                 unit_price: Some(unit_price),
-                p_type: Some(EntityType::Standard),
-                status: Some(EntityStatus::Active),
                 tax_mode: Some(TaxMode::AccountSetting),
                 ..Default::default()
             },
@@ -139,6 +130,94 @@ impl PriceResponse {
     }
 }
 
+impl EntityBaseGettersSetters for Price{
+    fn id(&self) -> Option<&str> {
+        self.base.id.as_deref()
+    }
+
+    fn name(&self) -> Option<&str> {
+        self.base.name.as_deref()
+    }
+
+    fn set_name<T: Into<String>>(self, name: T) -> Self {
+        Self {
+            base: EntityBase {
+                name: Some(name.into()),
+                ..self.base
+            },
+            ..self
+        }
+    }
+
+    fn description(&self) -> Option<&str> {
+         self.base.description.as_deref()
+    }
+
+    fn set_description<T: Into<String>>(self, description: T) -> Self {
+        Self {
+            base: EntityBase {
+                description: Some(description.into()),
+                ..self.base
+            },
+            ..self
+        }
+    }
+
+    fn p_type(&self) -> Option<&EntityType> {
+        self.base.p_type.as_ref()
+    }
+
+    fn set_p_type(self, p_type: EntityType) -> Self {
+        Self {
+            base: EntityBase {
+                p_type: Some(p_type),
+                ..self.base
+            },
+            ..self
+        }
+    }
+
+    fn status(&self) -> Option<&EntityStatus> {
+        self.base.status.as_ref()
+    }
+
+    fn set_status(self, status: EntityStatus) -> Self {
+        Self {
+            base: EntityBase {
+                status: Some(status),
+                ..self.base
+            },
+            ..self
+        }
+    }
+
+    fn custom_data(&self) -> Option<&serde_json::Value> {
+        self.base.custom_data.as_ref()
+    }
+
+    fn set_custom_data(self, custom_data: serde_json::Value) -> Self {
+        Self {
+            base: EntityBase {
+                custom_data: Some(custom_data),
+                ..self.base
+            },
+            ..self
+        }
+    }
+
+    fn import_meta(&self) -> Option<&serde_json::Value> {
+        self.base.import_meta.as_ref()
+    }
+
+    fn created_at(&self) -> Option<&str> {
+        self.base.created_at.as_deref()
+    }
+
+    fn updated_at(&self) -> Option<&str> {
+        self.base.updated_at.as_deref()
+    }
+}
+
 impl Price {
     pub fn new() -> Self {
         Self {
@@ -146,39 +225,8 @@ impl Price {
         }
     }
 
-    pub fn id(&self) -> Option<&str> {
-        self.id.as_deref()
-    }
-
     pub fn product_id(&self) -> Option<&str> {
         self.product_id.as_deref()
-    }
-
-    pub fn description(&self) -> Option<&str> {
-        self.description.as_deref()
-    }
-
-    pub fn set_description<T: Into<String>>(mut self, description: T) -> Self {
-        self.description = Some(description.into());
-        self
-    }
-
-    pub fn p_type(&self) -> Option<&EntityType> {
-        self.p_type.as_ref()
-    }
-
-    pub fn set_p_type(mut self, p_type: EntityType) -> Self {
-        self.p_type = Some(p_type);
-        self
-    }
-
-    pub fn name(&self) -> Option<&str> {
-        self.name.as_deref()
-    }
-
-    pub fn set_name<T: Into<String>>(mut self, name: T) -> Self {
-        self.name = Some(name.into());
-        self
     }
 
     pub fn billing_cycle(&self) -> Option<&BillingCycle> {
@@ -238,35 +286,6 @@ impl Price {
         self
     }
 
-    pub fn status(&self) -> Option<&EntityStatus> {
-        self.status.as_ref()
-    }
-
-    pub fn set_status(mut self, status: EntityStatus) -> Self {
-        self.status = Some(status);
-        self
-    }
-
-    pub fn custom_data(&self) -> Option<&serde_json::Value> {
-        self.custom_data.as_ref()
-    }
-
-    pub fn set_custom_data(mut self, custom_data: serde_json::Value) -> Self {
-        self.custom_data = Some(custom_data);
-        self
-    }
-
-    pub fn import_meta(&self) -> Option<&ImportMeta> {
-        self.import_meta.as_ref()
-    }
-
-    pub fn created_at(&self) -> Option<&str> {
-        self.created_at.as_deref()
-    }
-
-    pub fn updated_at(&self) -> Option<&str> {
-        self.updated_at.as_deref()
-    }
 }
 
 impl Default for Quantity {
