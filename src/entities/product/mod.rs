@@ -222,6 +222,7 @@ impl std::fmt::Display for ProductTaxCategory {
     }
 }
 
+
 impl From<CreateProductRequest> for Product {
     fn from(request: CreateProductRequest) -> Self {
         request.product_data

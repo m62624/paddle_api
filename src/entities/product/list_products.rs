@@ -1,4 +1,5 @@
 use crate::entities::price::Price;
+use crate::entities::Meta;
 use crate::error::PaddleError;
 use crate::Client;
 
@@ -17,7 +18,7 @@ pub struct ListProductsParams {
     id: Option<Vec<String>>,
     include: Option<Vec<Price>>,
     order_by: Option<String>,
-    per_page: Option<u32>,
+    per_page: Option<i32>,
     status: Option<Vec<EntityStatus>>,
     tax_category: Option<Vec<ProductTaxCategory>>,
     #[serde(rename = "type")]
@@ -28,33 +29,18 @@ pub struct ListProductsParams {
 // https://developer.paddle.com/api-reference/products/list-products#response
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub struct ListProductsResponse {
-    pub data: Vec<ProductResponseFromList>,
-    pub meta: Meta,
+    data: Vec<ProductResponseFromList>,
+    meta: Meta,
 }
 
 #[derive(Deserialize)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub struct ProductResponseFromList {
     #[serde(flatten)]
-    pub product: Product,
+    product: Product,
 }
 
-// https://developer.paddle.com/api-reference/products/list-products#response
-#[derive(Deserialize)]
-#[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
-pub struct Meta {
-    pub request_id: String,
-    pub pagination: Pagination,
-}
 
-#[derive(Deserialize)]
-#[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
-pub struct Pagination {
-    pub per_page: u32,
-    pub next: String,
-    pub has_more: bool,
-    pub estimated_total: u32,
-}
 
 impl ListProductsParams {
     pub fn new() -> Self {
@@ -97,12 +83,12 @@ impl ListProductsParams {
         self
     }
 
-    pub fn per_page(&self) -> Option<u32> {
+    pub fn per_page(&self) -> Option<i32> {
         self.per_page
     }
 
-    pub fn set_per_page(mut self, per_page: u32) -> Self {
-        self.per_page = Some(per_page);
+    pub fn set_per_page<T: Into<i32>>(mut self, per_page: T) -> Self{
+        self.per_page = Some(per_page.into());
         self
     }
 
@@ -131,6 +117,23 @@ impl ListProductsParams {
     pub fn set_p_type(mut self, p_type: EntityType) -> Self {
         self.p_type = Some(p_type);
         self
+    }
+}
+
+
+impl ListProductsResponse {
+    pub fn data(&self) -> &Vec<ProductResponseFromList> {
+        &self.data
+    }
+
+    pub fn meta(&self) -> &Meta {
+        &self.meta
+    }
+}
+
+impl ProductResponseFromList {
+    pub fn product(&self) -> &Product {
+        &self.product
     }
 }
 
@@ -204,5 +207,17 @@ impl Client {
         .await?
         .json()
         .await?)
+    }
+}
+
+impl From<ListProductsResponse> for (Vec<ProductResponseFromList>, Meta) {
+    fn from(r: ListProductsResponse) -> Self {
+        (r.data, r.meta)
+    }
+}
+
+impl From<ProductResponseFromList> for Product {
+    fn from(p: ProductResponseFromList) -> Self {
+        p.product
     }
 }

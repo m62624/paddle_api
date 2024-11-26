@@ -74,7 +74,7 @@ async fn test_get_list_products_t_0() -> Result<(), Box<dyn std::error::Error>> 
         .get_list_products(ListProductsParams::default())
         .await?;
 
-    if r.data.is_empty() {
+    if r.data().is_empty() {
         panic!("No products found");
     } else {
         println!("Get list products response: {:#?}", r);
