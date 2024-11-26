@@ -1,3 +1,12 @@
+pub mod check_auth;
+pub mod create_product;
+pub mod get_product;
+pub mod list_products;
+pub mod update_product;
+
+#[cfg(test)]
+mod unit_tests;
+
 use serde::{Deserialize, Serialize};
 
 // https://developer.paddle.com/api-reference/products/overview
@@ -47,91 +56,91 @@ pub struct Meta {
 }
 
 impl ProductData {
-    pub fn new(name: String, tax_category: String, p_type: String) -> Self {
+    pub fn new(name: String, tax_category: String) -> Self {
         Self {
             name,
             tax_category: Some(tax_category),
             description: None,
-            p_type,
+            p_type: "standard".to_string(),
             image_url: None,
             custom_data: None,
         }
     }
 
-    pub fn description(mut self, description: String) -> Self {
+    pub fn set_description(mut self, description: String) -> Self {
         self.description = Some(description);
         self
     }
 
-    pub fn image_url(mut self, image_url: String) -> Self {
+    pub fn set_image_url(mut self, image_url: String) -> Self {
         self.image_url = Some(image_url);
         self
     }
 
-    pub fn custom_data(mut self, custom_data: serde_json::Value) -> Self {
+    pub fn set_custom_data(mut self, custom_data: serde_json::Value) -> Self {
         self.custom_data = Some(custom_data);
         self
     }
 }
 
 impl ProductResponse {
-    pub fn id(&self) -> &str {
+    pub fn get_id(&self) -> &str {
         &self.id
     }
 
-    pub fn name(&self) -> &str {
+    pub fn get_name(&self) -> &str {
         &self.name
     }
 
-    pub fn description(&self) -> Option<&str> {
+    pub fn get_description(&self) -> Option<&str> {
         self.description.as_deref()
     }
 
-    pub fn p_type(&self) -> &str {
+    pub fn get_p_type(&self) -> &str {
         &self.p_type
     }
 
-    pub fn tax_category(&self) -> Option<&str> {
+    pub fn get_tax_category(&self) -> Option<&str> {
         self.tax_category.as_deref()
     }
 
-    pub fn image_url(&self) -> Option<&str> {
+    pub fn get_image_url(&self) -> Option<&str> {
         self.image_url.as_deref()
     }
 
-    pub fn custom_data(&self) -> Option<&serde_json::Value> {
+    pub fn get_custom_data(&self) -> Option<&serde_json::Value> {
         self.custom_data.as_ref()
     }
 
-    pub fn status(&self) -> &str {
+    pub fn get_status(&self) -> &str {
         &self.status
     }
 
-    pub fn import_meta(&self) -> Option<&serde_json::Value> {
+    pub fn get_import_meta(&self) -> Option<&serde_json::Value> {
         self.import_meta.as_ref()
     }
 
-    pub fn created_at(&self) -> &str {
+    pub fn get_created_at(&self) -> &str {
         &self.created_at
     }
 
-    pub fn updated_at(&self) -> &str {
+    pub fn get_updated_at(&self) -> &str {
         &self.updated_at
     }
 }
 
 impl GetProductResponse {
-    pub fn data(&self) -> &ProductResponse {
+    pub fn get_data(&self) -> &ProductResponse {
         &self.data
     }
 
-    pub fn meta(&self) -> &Meta {
+    pub fn get_meta(&self) -> &Meta {
         &self.meta
     }
 }
 
 impl Meta {
-    pub fn request_id(&self) -> &str {
+    pub fn get_request_id(&self) -> &str {
         &self.request_id
     }
 }

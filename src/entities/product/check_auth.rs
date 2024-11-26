@@ -1,4 +1,7 @@
-use super::*;
+use serde_json::Value;
+
+use crate::error::PaddleError;
+use crate::Client;
 
 impl<'a> Client<'a> {
     /// You can test your authentication credentials

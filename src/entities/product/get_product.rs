@@ -1,4 +1,4 @@
-use super::Client;
+use crate::Client;
 use crate::entities::product::GetProductResponse;
 
 impl<'a> Client<'a> {

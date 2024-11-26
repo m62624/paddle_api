@@ -1,6 +1,6 @@
-use super::Client;
-use super::PaddleError;
 use crate::entities::product::ProductResponse;
+use crate::Client;
+use crate::PaddleError;
 use serde::Deserialize;
 
 // https://developer.paddle.com/api-reference/products/list-products#query-parameters
@@ -39,41 +39,41 @@ impl ListProductsParams {
         Self::default()
     }
 
-    pub fn after(mut self, after: String) -> Self {
+    pub fn get_after(mut self, after: String) -> Self {
         self.after = Some(after);
         self
     }
 
-    pub fn id(mut self, id: Vec<String>) -> Self {
+    pub fn get_id(mut self, id: Vec<String>) -> Self {
         self.id = Some(id);
         self
     }
 
-    pub fn include(mut self, include: Vec<String>) -> Self {
+    pub fn get_include(mut self, include: Vec<String>) -> Self {
         self.include = Some(include);
         self
     }
 
-    pub fn order_by(mut self, order_by: String) -> Self {
+    pub fn get_order_by(mut self, order_by: String) -> Self {
         self.order_by = Some(order_by);
         self
     }
 
-    pub fn per_page(mut self, per_page: u32) -> Self {
+    pub fn get_per_page(mut self, per_page: u32) -> Self {
         self.per_page = Some(per_page);
         self
     }
 
-    pub fn status(mut self, status: Vec<String>) -> Self {
+    pub fn get_status(mut self, status: Vec<String>) -> Self {
         self.status = Some(status);
         self
     }
 
-    pub fn tax_category(mut self, tax_category: Vec<String>) -> Self {
+    pub fn get_tax_category(mut self, tax_category: Vec<String>) -> Self {
         self.tax_category = Some(tax_category);
         self
     }
-    pub fn p_type(mut self, p_type: String) -> Self {
+    pub fn get_p_type(mut self, p_type: String) -> Self {
         self.p_type = Some(p_type);
         self
     }

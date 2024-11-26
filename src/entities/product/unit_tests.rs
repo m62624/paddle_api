@@ -1,6 +1,6 @@
-use super::*;
+use crate::entities::product::list_products::ListProductsParams;
 use crate::entities::product::ProductData;
-use crate::list_products::ListProductsParams;
+use crate::Client;
 use std::env;
 
 /// Environment variables:
@@ -95,18 +95,18 @@ mod tests {
         }
 
         #[tokio::test]
+        #[ignore]
         async fn test_create_product_t_0() -> Result<(), Box<dyn std::error::Error>> {
             let config = Config::new()?;
             let client = Client::new(&config.url, &config.auth)?;
 
             let product_data = ProductData::new(
-                "AeroEdit Student".to_string(),
+                "AeroEdit Student (0)".to_string(),
                 "standard".to_string(),
-                "custom".to_string(),
             )
-            .description("Essential tools for student pilots to manage flight logs, analyze performance, and plan routes, and ensure compliance. Valid student pilot certificate from the FAA required.".to_string())
-            .image_url("https://paddle.s3.amazonaws.com/user/165798/bT1XUOJAQhOUxGs83cbk_pro.png".to_string())
-            .custom_data(serde_json::json!({"key": "value"}));
+            .set_description("Essential tools for student pilots to manage flight logs, analyze performance, and plan routes, and ensure compliance. Valid student pilot certificate from the FAA required.".to_string())
+            .set_image_url("https://paddle.s3.amazonaws.com/user/165798/bT1XUOJAQhOUxGs83cbk_pro.png".to_string())
+            .set_custom_data(serde_json::json!({"key": "value"}));
 
             client.create_product(product_data).await?;
             Ok(())
