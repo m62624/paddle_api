@@ -138,8 +138,18 @@ impl ProductData {
         }
     }
 
+    pub fn set_tax_category(mut self, tax_category: ProductTaxCategory) -> Self {
+        self.tax_category = Some(tax_category);
+        self
+    }
+
     pub fn set_description<T: Into<String>>(mut self, description: T) -> Self {
         self.description = Some(description.into());
+        self
+    }
+
+    pub fn set_type(mut self, p_type: ProductType) -> Self {
+        self.p_type = Some(p_type);
         self
     }
 
