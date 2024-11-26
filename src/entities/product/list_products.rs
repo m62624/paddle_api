@@ -103,7 +103,7 @@ impl Meta {
     }
 }
 
-impl<'a> Client<'a> {
+impl Client {
     /// List all products (GET)
     ///
     /// ### Arguments

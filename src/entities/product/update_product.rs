@@ -3,7 +3,7 @@ use crate::Client;
 
 use super::UpdateProductRequest;
 
-impl<'a> Client<'a> {
+impl Client {
     /// Update a product by its ID (PATCH).
     ///
     /// If successful, your response includes a copy of the updated product entity.

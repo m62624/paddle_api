@@ -1,7 +1,7 @@
 use crate::entities::product::GetProductResponse;
 use crate::Client;
 
-impl<'a> Client<'a> {
+impl Client {
     /// Get a single product by its ID (GET).
     ///
     /// [Official document](https://developer.paddle.com/api-reference/products/get-product)

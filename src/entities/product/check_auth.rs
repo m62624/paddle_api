@@ -2,7 +2,7 @@ use serde_json::Value;
 
 use crate::Client;
 
-impl<'a> Client<'a> {
+impl Client {
     /// You can test your authentication credentials
     /// by making a request to the Paddle API.
     ///

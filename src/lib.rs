@@ -6,21 +6,21 @@ use url::Url;
 
 /// Paddle API client
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
-pub struct Client<'a> {
+pub struct Client {
     client: RClient,
-    auth: &'a str,
+    auth: String,
     url: Url,
     paddle_version: Option<String>,
 }
 
-impl<'a> Client<'a> {
+impl Client {
     /// Create a new Paddle API client
     ///
     /// ### Arguments
     /// `url` - the base URL for the Paddle API\
     /// `auth` - use Bearer authentication when making requests to the Paddle API
     // https://developer.paddle.com/api-reference/about/authentication
-    pub fn new(url: &str, auth: &'a str) -> Result<Self, anyhow::Error> {
+    pub fn new<T: Into<String>>(url: &str, auth: T) -> Result<Self, anyhow::Error> {
         Ok(Self {
             client: RClient::new(),
             auth: auth.into(),

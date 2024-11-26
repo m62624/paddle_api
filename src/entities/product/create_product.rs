@@ -3,7 +3,7 @@ use crate::Client;
 
 use super::CreateProductRequest;
 
-impl<'a> Client<'a> {
+impl Client {
     /// Create a new product (POST).
     ///
     /// If successful, your response includes a copy of the new product entity.
