@@ -1,5 +1,7 @@
-use crate::entities::product::{GetProductResponse, ProductData};
+use crate::entities::product::GetProductResponse;
 use crate::Client;
+
+use super::UpdateProductRequest;
 
 impl<'a> Client<'a> {
     /// Update a product by its ID.
@@ -10,7 +12,7 @@ impl<'a> Client<'a> {
     pub async fn update_product(
         &self,
         product_id: &str,
-        product_data: ProductData,
+        product_data: UpdateProductRequest,
     ) -> Result<GetProductResponse, anyhow::Error> {
         let url = self.url.join(&format!("products/{}", product_id))?;
 

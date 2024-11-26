@@ -1,5 +1,7 @@
-use crate::entities::product::{GetProductResponse, ProductData};
+use crate::entities::product::GetProductResponse;
 use crate::Client;
+
+use super::CreateProductRequest;
 
 impl<'a> Client<'a> {
     /// Create a new product.
@@ -9,7 +11,7 @@ impl<'a> Client<'a> {
     // https://developer.paddle.com/api-reference/products/create-product
     pub async fn create_product(
         &self,
-        product_data: ProductData,
+        product_data: CreateProductRequest,
     ) -> Result<GetProductResponse, anyhow::Error> {
         let url = self.url.join("products")?;
 

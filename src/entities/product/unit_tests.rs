@@ -1,4 +1,3 @@
-
 use crate::Client;
 use std::env;
 
@@ -38,6 +37,7 @@ mod tests {
     use crate::entities::product::list_products::ListProductsParams;
     use crate::entities::product::ProductData;
     use crate::entities::product::ProductTaxCategory;
+    use crate::entities::product::{CreateProductRequest, UpdateProductRequest};
 
     use super::*;
 
@@ -93,8 +93,8 @@ mod tests {
             let client = Client::new(&config.url, &config.auth)?;
 
             if let Some(product_id) = config.product_id() {
-               let r = client.get_product(product_id, None).await?;
-               println!("{:#?}", r);
+                let r = client.get_product(product_id, None).await?;
+                println!("{:#?}", r);
             }
 
             Ok(())
@@ -106,32 +106,33 @@ mod tests {
             let config = Config::new()?;
             let client = Client::new(&config.url, &config.auth)?;
 
-            let product_data = ProductData::new(
-                "AeroEdit Student (0)".to_string(),
-                ProductTaxCategory::Standard,
-                
+            let product_data = CreateProductRequest::new(ProductData::new(
+                "AeroEdit Student (0)".to_string(),                
             )
             .set_description("Essential tools for student pilots to manage flight logs, analyze performance, and plan routes, and ensure compliance. Valid student pilot certificate from the FAA required.".to_string())
             .set_image_url("https://paddle.s3.amazonaws.com/user/165798/bT1XUOJAQhOUxGs83cbk_pro.png".to_string())
-            .set_custom_data(serde_json::json!({"key": "value"}));
+            .set_custom_data(serde_json::json!({"key": "value"})));
 
-           let r = client.create_product(product_data).await?;
+            let r = client.create_product(product_data).await?;
 
             println!("{:#?}", r);
 
             Ok(())
         }
 
-
         #[tokio::test]
-        async fn test_update_product_t_0()-> Result<(), Box<dyn std::error::Error>> {
+        async fn test_update_product_t_0() -> Result<(), Box<dyn std::error::Error>> {
             let config = Config::new()?;
             let client = Client::new(&config.url, &config.auth)?;
 
-            let product_data = ProductData::default()
-            .set_status(crate::entities::product::ProductStatus::Active);
+            let product_data =
+                UpdateProductRequest::new(ProductData::new("AeroEdit Student (1)").set_image_url(
+                    "https://paddle.s3.amazonaws.com/user/165798/bT1XUOJAQhOUxGs83cbk_pro.png",
+                ));
 
-            let r = client.update_product("pro_01jdjk2j298zgnbtayd3ahrdbb", product_data).await?;
+            let r = client
+                .update_product("pro_01jdjk2j298zgnbtayd3ahrdbb", product_data)
+                .await?;
 
             println!("{:#?}", r);
 

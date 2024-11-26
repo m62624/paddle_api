@@ -7,20 +7,39 @@ pub mod update_product;
 #[cfg(test)]
 mod unit_tests;
 
+use serde::ser::SerializeMap;
 use serde::{Deserialize, Serialize};
 
+#[derive(Serialize)]
+pub struct CreateProductRequest {
+    #[serde(flatten)]
+    pub data: ProductData,
+}
+
+pub struct UpdateProductRequest {
+    pub data: ProductData,
+}
+
 // https://developer.paddle.com/api-reference/products/overview
-#[derive(Serialize, Default)]
+#[derive(Serialize, Deserialize)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub struct ProductData {
     name: String,
     tax_category: Option<ProductTaxCategory>,
     description: Option<String>,
     #[serde(rename = "type")]
-    p_type: ProductType,
+    p_type: Option<ProductType>,
     image_url: Option<String>,
     custom_data: Option<serde_json::Value>,
     status: Option<ProductStatus>,
+}
+
+// https://developer.paddle.com/api-reference/products/get-product#response
+#[derive(Deserialize)]
+#[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
+pub struct GetProductResponse {
+    data: ProductResponse,
+    meta: Meta,
 }
 
 // https://developer.paddle.com/api-reference/products/overview
@@ -28,17 +47,18 @@ pub struct ProductData {
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub struct ProductResponse {
     id: String,
-    name: String,
-    description: Option<String>,
-    #[serde(rename = "type")]
-    p_type: ProductType,
-    tax_category: Option<ProductTaxCategory>,
-    image_url: Option<String>,
-    custom_data: Option<serde_json::Value>,
-    status: ProductStatus,
+    #[serde(flatten)]
+    data: ProductData,
     import_meta: Option<serde_json::Value>,
     created_at: String,
     updated_at: String,
+}
+
+// https://developer.paddle.com/api-reference/products/get-product#response
+#[derive(Deserialize)]
+#[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
+pub struct Meta {
+    request_id: String,
 }
 
 // https://developer.paddle.com/api-reference/products/list-products
@@ -85,41 +105,38 @@ pub enum ProductStatus {
     Archived,
 }
 
-// https://developer.paddle.com/api-reference/products/get-product#response
-#[derive(Deserialize)]
-#[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
-pub struct GetProductResponse {
-    data: ProductResponse,
-    meta: Meta,
+impl CreateProductRequest {
+    pub fn new(data: ProductData) -> Self {
+        Self { data }
+    }
 }
 
-// https://developer.paddle.com/api-reference/products/get-product#response
-#[derive(Deserialize)]
-#[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
-pub struct Meta {
-    request_id: String,
+impl UpdateProductRequest {
+    pub fn new(data: ProductData) -> Self {
+        Self { data }
+    }
 }
 
 impl ProductData {
-    pub fn new(name: String, tax_category: ProductTaxCategory) -> Self {
+    pub fn new<T: Into<String>>(name: T) -> Self {
         Self {
-            name,
-            tax_category: Some(tax_category),
+            name: name.into(),
+            tax_category: None,
             description: None,
-            p_type: ProductType::Standard,
+            p_type: None,
             image_url: None,
             custom_data: None,
-            status: Some(ProductStatus::Active),
+            status: None,
         }
     }
 
-    pub fn set_description(mut self, description: String) -> Self {
-        self.description = Some(description);
+    pub fn set_description<T: Into<String>>(mut self, description: T) -> Self {
+        self.description = Some(description.into());
         self
     }
 
-    pub fn set_image_url(mut self, image_url: String) -> Self {
-        self.image_url = Some(image_url);
+    pub fn set_image_url<T: Into<String>>(mut self, image_url: T) -> Self {
+        self.image_url = Some(image_url.into());
         self
     }
 
@@ -140,31 +157,31 @@ impl ProductResponse {
     }
 
     pub fn get_name(&self) -> &str {
-        &self.name
+        &self.data.name
     }
 
     pub fn get_description(&self) -> Option<&str> {
-        self.description.as_deref()
+        self.data.description.as_deref()
     }
 
-    pub fn get_p_type(&self) -> &ProductType {
-        &self.p_type
+    pub fn get_p_type(&self) -> Option<&ProductType> {
+        self.data.p_type.as_ref()
     }
 
     pub fn get_tax_category(&self) -> Option<&ProductTaxCategory> {
-        self.tax_category.as_ref()
+        self.data.tax_category.as_ref()
     }
 
     pub fn get_image_url(&self) -> Option<&str> {
-        self.image_url.as_deref()
+        self.data.image_url.as_deref()
     }
 
     pub fn get_custom_data(&self) -> Option<&serde_json::Value> {
-        self.custom_data.as_ref()
+        self.data.custom_data.as_ref()
     }
 
-    pub fn get_status(&self) -> &ProductStatus {
-        &self.status
+    pub fn get_status(&self) -> Option<&ProductStatus> {
+        self.data.status.as_ref()
     }
 
     pub fn get_import_meta(&self) -> Option<&serde_json::Value> {
@@ -193,6 +210,53 @@ impl GetProductResponse {
 impl Meta {
     pub fn get_request_id(&self) -> &str {
         &self.request_id
+    }
+}
+
+impl Serialize for UpdateProductRequest {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        /*
+        name: String,
+        tax_category: Option<ProductTaxCategory>,
+        description: Option<String>,
+        #[serde(rename = "type")]
+        p_type: Option<ProductType>,
+        image_url: Option<String>,
+        custom_data: Option<serde_json::Value>,
+        status: Option<ProductStatus>,
+             */
+        let mut map = serializer.serialize_map(None)?;
+
+        map.serialize_entry("name", &self.data.name)?;
+
+        if let Some(ref tax_category) = self.data.tax_category {
+            map.serialize_entry("tax_category", tax_category)?;
+        }
+
+        if let Some(ref description) = self.data.description {
+            map.serialize_entry("description", description)?;
+        }
+
+        if let Some(ref p_type) = self.data.p_type {
+            map.serialize_entry("type", p_type)?;
+        }
+
+        if let Some(ref image_url) = self.data.image_url {
+            map.serialize_entry("image_url", image_url)?;
+        }
+
+        if let Some(ref custom_data) = self.data.custom_data {
+            map.serialize_entry("custom_data", custom_data)?;
+        }
+
+        if let Some(ref status) = self.data.status {
+            map.serialize_entry("status", status)?;
+        }
+
+        map.end()
     }
 }
 

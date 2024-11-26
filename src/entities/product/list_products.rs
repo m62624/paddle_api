@@ -42,23 +42,23 @@ impl ListProductsParams {
         Self::default()
     }
 
-    pub fn set_after(mut self, after: String) -> Self {
-        self.after = Some(after);
+    pub fn set_after<T: Into<String>>(mut self, after: T) -> Self {
+        self.after = Some(after.into());
         self
     }
 
-    pub fn set_id(mut self, id: Vec<String>) -> Self {
-        self.id = Some(id);
+    pub fn set_id<T: Into<String>>(mut self, id: Vec<T>) -> Self {
+        self.id = Some(id.into_iter().map(Into::into).collect());
         self
     }
 
-    pub fn set_include(mut self, include: Vec<String>) -> Self {
-        self.include = Some(include);
+    pub fn set_include<T: Into<String>>(mut self, include: Vec<T>) -> Self {
+        self.include = Some(include.into_iter().map(Into::into).collect());
         self
     }
 
-    pub fn set_order_by(mut self, order_by: String) -> Self {
-        self.order_by = Some(order_by);
+    pub fn set_order_by<T: Into<String>>(mut self, order_by: T) -> Self {
+        self.order_by = Some(order_by.into());
         self
     }
 
