@@ -10,7 +10,7 @@ impl<'a> Client<'a> {
     pub async fn create_product(
         &self,
         product_data: ProductData,
-    ) -> Result<GetProductResponse, crate::error::PaddleError> {
+    ) -> Result<GetProductResponse, anyhow::Error> {
         let url = self.url.join("products")?;
 
         let response = self

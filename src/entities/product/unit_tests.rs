@@ -121,5 +121,21 @@ mod tests {
 
             Ok(())
         }
+
+
+        #[tokio::test]
+        async fn test_update_product_t_0()-> Result<(), Box<dyn std::error::Error>> {
+            let config = Config::new()?;
+            let client = Client::new(&config.url, &config.auth)?;
+
+            let product_data = ProductData::default()
+            .set_status(crate::entities::product::ProductStatus::Active);
+
+            let r = client.update_product("pro_01jdjk2j298zgnbtayd3ahrdbb", product_data).await?;
+
+            println!("{:#?}", r);
+
+            Ok(())
+        }
     }
 }

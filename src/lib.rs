@@ -1,7 +1,6 @@
 mod entities;
-mod error;
 
-use error::PaddleError;
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::Client as RClient;
 use url::Url;
 
@@ -21,7 +20,7 @@ impl<'a> Client<'a> {
     /// `url` - the base URL for the Paddle API\
     /// `auth` - use Bearer authentication when making requests to the Paddle API
     // https://developer.paddle.com/api-reference/about/authentication
-    pub fn new(url: &str, auth: &'a str) -> Result<Self, PaddleError> {
+    pub fn new(url: &str, auth: &'a str) -> Result<Self, anyhow::Error> {
         Ok(Self {
             client: RClient::new(),
             auth: auth.into(),
@@ -41,24 +40,18 @@ impl<'a> Client<'a> {
     }
 
     /// Default headers for Paddle API requests
-    fn default_headers(&self) -> Result<reqwest::header::HeaderMap, PaddleError> {
-        let mut headers = reqwest::header::HeaderMap::new();
+    fn default_headers(&self) -> Result<HeaderMap, anyhow::Error> {
+        let mut headers = HeaderMap::new();
+
+        headers.insert(CONTENT_TYPE, HeaderValue::from_str("application/json")?);
 
         headers.insert(
-            reqwest::header::CONTENT_TYPE,
-            reqwest::header::HeaderValue::from_str("application/json")?,
-        );
-
-        headers.insert(
-            reqwest::header::AUTHORIZATION,
-            reqwest::header::HeaderValue::from_str(&format!("Bearer {}", self.auth))?,
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {}", self.auth))?,
         );
 
         if let Some(version) = &self.paddle_version {
-            headers.insert(
-                "Paddle-Version",
-                reqwest::header::HeaderValue::from_str(version)?,
-            );
+            headers.insert("Paddle-Version", HeaderValue::from_str(version)?);
         }
 
         Ok(headers)

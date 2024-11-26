@@ -1,5 +1,5 @@
-use crate::Client;
 use crate::entities::product::GetProductResponse;
+use crate::Client;
 
 impl<'a> Client<'a> {
     /// Get a single product by its ID.
@@ -9,7 +9,7 @@ impl<'a> Client<'a> {
         &self,
         id: &str,
         include: Option<Vec<String>>,
-    ) -> Result<GetProductResponse, crate::error::PaddleError> {
+    ) -> Result<GetProductResponse, anyhow::Error> {
         let mut url = self.url.join(&format!("products/{}", id))?;
 
         // query

@@ -1,5 +1,4 @@
 use crate::entities::product::{GetProductResponse, ProductData};
-use crate::error::PaddleError;
 use crate::Client;
 
 impl<'a> Client<'a> {
@@ -12,7 +11,7 @@ impl<'a> Client<'a> {
         &self,
         product_id: &str,
         product_data: ProductData,
-    ) -> Result<GetProductResponse, PaddleError> {
+    ) -> Result<GetProductResponse, anyhow::Error> {
         let url = self.url.join(&format!("products/{}", product_id))?;
 
         let response = self

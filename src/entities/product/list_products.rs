@@ -1,6 +1,5 @@
 use crate::entities::product::ProductResponse;
 use crate::Client;
-use crate::PaddleError;
 use serde::Deserialize;
 
 use super::ProductStatus;
@@ -113,7 +112,7 @@ impl<'a> Client<'a> {
     pub async fn list_products(
         &self,
         params: ListProductsParams,
-    ) -> Result<ListProductsResponse, PaddleError> {
+    ) -> Result<ListProductsResponse, anyhow::Error> {
         let mut url = self.url.join("products")?;
 
         if let Some(after) = params.after {
