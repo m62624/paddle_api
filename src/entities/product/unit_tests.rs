@@ -1,14 +1,19 @@
+use super::list_products::ListProductsParams;
+use crate::entities::product::*;
+
 use crate::Client;
-use std::env;
+use once_cell::sync::Lazy;
+use std::{env, sync::Arc};
 
 /// Environment variables:
 /// `PADDLE_API_URL`
 /// `PADDLE_API_AUTH`
 /// `PADDLE_PRODUCT_ID`
+
 pub struct Config {
     pub url: String,
     pub auth: String,
-    product_id: Option<String>,
+    pub product_id: String,
 }
 
 impl Config {
@@ -16,128 +21,84 @@ impl Config {
         Ok(Self {
             url: env::var("PADDLE_API_URL")?,
             auth: env::var("PADDLE_API_AUTH")?,
-            product_id: None,
+            product_id: env::var("PADDLE_PRODUCT_ID")?,
         })
-    }
-
-    #[allow(dead_code)]
-    pub fn set_product_id(mut self, product_id: String) -> Self {
-        self.product_id = Some(product_id);
-        self
-    }
-
-    pub fn product_id(&self) -> Option<&str> {
-        self.product_id.as_deref()
     }
 }
 
-#[cfg(test)]
-mod tests {
+pub static CONFIG: Lazy<Arc<Config>> =
+    Lazy::new(|| Arc::new(Config::new().expect("Failed to load config")));
 
-    use crate::entities::product::list_products::ListProductsParams;
-    use crate::entities::product::ProductData;
-    use crate::entities::product::ProductTaxCategory;
-    use crate::entities::product::{CreateProductRequest, UpdateProductRequest};
+#[tokio::test]
+async fn test_auth_t_0() -> Result<(), Box<dyn std::error::Error>> {
+    let config = CONFIG.clone();
+    let client = Client::new(&config.url, &config.auth)?;
+    client.test_authentication().await?;
+    Ok(())
+}
 
-    use super::*;
+#[tokio::test]
+#[should_panic]
+async fn test_auth_t_1() {
+    let config = Config::new().unwrap();
+    let _client = Client::new(&config.url, "invalid_auth").unwrap();
+}
 
-    mod client {
-        use super::*;
+#[tokio::test]
+async fn test_get_product_t_0() -> Result<(), Box<dyn std::error::Error>> {
+    let config = CONFIG.clone();
+    let client = Client::new(&config.url, &config.auth)?;
+    client.get_product(&config.product_id, None).await?;
+    Ok(())
+}
 
-        #[test]
-        fn new_t_0() -> Result<(), Box<dyn std::error::Error>> {
-            let config = Config::new()?;
-            Client::new(&config.url, &config.auth)?;
-            Ok(())
-        }
+#[tokio::test]
+#[should_panic]
+async fn test_get_product_t_1() {
+    let config = Config::new().unwrap();
+    let client = Client::new(&config.url, &config.auth).unwrap();
+    let _ = client
+        .get_product("invalid_product_id", None)
+        .await
+        .unwrap();
+}
 
-        #[test]
-        #[should_panic]
-        fn new_f_0() {
-            let config = Config::new().unwrap();
-            let mut client =
-                Client::new(r###"https:::\/sandbox-api.paddle.com"###, &config.auth).unwrap();
-            client.set_paddle_version("1");
-        }
+#[tokio::test]
+async fn test_get_list_products_t_0() -> Result<(), Box<dyn std::error::Error>> {
+    let config = CONFIG.clone();
+    let client = Client::new(&config.url, &config.auth)?;
+    let r = client
+        .get_list_products(ListProductsParams::default())
+        .await?;
 
-        #[tokio::test]
-        async fn test_authentication_t_0() -> Result<(), Box<dyn std::error::Error>> {
-            let config = Config::new()?;
-            let client = Client::new(&config.url, &config.auth)?;
-            client.test_authentication().await?;
-            Ok(())
-        }
-
-        #[tokio::test]
-        #[should_panic]
-        async fn test_authentication_f_0() {
-            let config = Config::new().unwrap();
-            let client = Client::new(&config.url, "invalid").unwrap();
-            client.test_authentication().await.unwrap();
-        }
-
-        #[tokio::test]
-        async fn list_products_t_0() -> Result<(), Box<dyn std::error::Error>> {
-            let config = Config::new()?;
-            let client = Client::new(&config.url, &config.auth)?;
-            let r = client.list_products(ListProductsParams::default()).await?;
-            println!("{:#?}", r);
-
-            Ok(())
-        }
-
-        #[tokio::test]
-        async fn get_product_t_0() -> Result<(), Box<dyn std::error::Error>> {
-            let config = Config::new()?;
-            // let config = Config::new()?.set_product_id("some id".to_string());
-
-            let client = Client::new(&config.url, &config.auth)?;
-
-            if let Some(product_id) = config.product_id() {
-                let r = client.get_product(product_id, None).await?;
-                println!("{:#?}", r);
-            }
-
-            Ok(())
-        }
-
-        #[tokio::test]
-        #[ignore]
-        async fn test_create_product_t_0() -> Result<(), Box<dyn std::error::Error>> {
-            let config = Config::new()?;
-            let client = Client::new(&config.url, &config.auth)?;
-
-            let product_data = CreateProductRequest::new(ProductData::new(
-                "AeroEdit Student (0)".to_string(),                
-            )
-            .set_description("Essential tools for student pilots to manage flight logs, analyze performance, and plan routes, and ensure compliance. Valid student pilot certificate from the FAA required.".to_string())
-            .set_image_url("https://paddle.s3.amazonaws.com/user/165798/bT1XUOJAQhOUxGs83cbk_pro.png".to_string())
-            .set_custom_data(serde_json::json!({"key": "value"})));
-
-            let r = client.create_product(product_data).await?;
-
-            println!("{:#?}", r);
-
-            Ok(())
-        }
-
-        #[tokio::test]
-        async fn test_update_product_t_0() -> Result<(), Box<dyn std::error::Error>> {
-            let config = Config::new()?;
-            let client = Client::new(&config.url, &config.auth)?;
-
-            let product_data =
-                UpdateProductRequest::new(ProductData::new("AeroEdit Student (1)").set_image_url(
-                    "https://paddle.s3.amazonaws.com/user/165798/bT1XUOJAQhOUxGs83cbk_pro.png",
-                ));
-
-            let r = client
-                .update_product("pro_01jdjk2j298zgnbtayd3ahrdbb", product_data)
-                .await?;
-
-            println!("{:#?}", r);
-
-            Ok(())
-        }
+    if r.data().is_empty() {
+        panic!("No products found");
     }
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_update_product_t_0() -> Result<(), Box<dyn std::error::Error>> {
+    let config = CONFIG.clone();
+    let client = Client::new(&config.url, &config.auth)?;
+
+    let product_id = &config.product_id;
+    let name = "AeroEdit Student";
+
+    client
+        .update_product(
+            product_id,
+            UpdateProductRequest::new(ProductData::new(name).set_status(ProductStatus::Active)),
+        )
+        .await?;
+
+    client
+        .update_product(
+            product_id,
+            UpdateProductRequest::new(ProductData::new(name).set_status(ProductStatus::Archived)),
+        )
+        .await?;
+
+    Ok(())
 }
