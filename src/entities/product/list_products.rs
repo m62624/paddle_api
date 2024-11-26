@@ -1,4 +1,4 @@
-use crate::entities::price::PriceData;
+use crate::entities::price::Price;
 use crate::error::PaddleError;
 use crate::Client;
 
@@ -15,7 +15,7 @@ use crate::entities::EntityType;
 pub struct ListProductsParams {
     after: Option<String>,
     id: Option<Vec<String>>,
-    include: Option<Vec<PriceData>>,
+    include: Option<Vec<Price>>,
     order_by: Option<String>,
     per_page: Option<u32>,
     status: Option<Vec<EntityStatus>>,
@@ -79,11 +79,11 @@ impl ListProductsParams {
         self
     }
 
-    pub fn include(&self) -> Option<&Vec<PriceData>> {
+    pub fn include(&self) -> Option<&Vec<Price>> {
         self.include.as_ref()
     }
 
-    pub fn set_include(mut self, include: Vec<PriceData>) -> Self {
+    pub fn set_include(mut self, include: Vec<Price>) -> Self {
         self.include = Some(include);
         self
     }

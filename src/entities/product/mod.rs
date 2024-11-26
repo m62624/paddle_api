@@ -11,7 +11,7 @@ mod unit_tests;
 
 use serde::{Deserialize, Serialize};
 
-use super::price::PriceData;
+use super::price::Price;
 use super::{EntityStatus, EntityType, Meta};
 
 /// The request to create a new product.
@@ -27,8 +27,8 @@ pub struct CreateProductRequest {
 #[derive(Deserialize)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub struct ProductResponse {
-    pub data: Product,
-    pub meta: Meta,
+    data: Product,
+    meta: Meta,
 }
 
 /// Product entities describe the items that customers can purchase. They hold high-level product attributes.
@@ -49,7 +49,7 @@ pub struct Product {
     import_meta: Option<serde_json::Value>,
     created_at: Option<String>,
     updated_at: Option<String>,
-    prices: Option<PriceData>,
+    prices: Option<Vec<Price>>,
 }
 
 /// Tax category for this product. Used for charging the correct rate of tax.
@@ -95,6 +95,16 @@ impl CreateProductRequest {
     }
 }
 
+impl ProductResponse {
+    pub fn data(&self) -> &Product {
+        &self.data
+    }
+
+    pub fn meta(&self) -> &Meta {
+        &self.meta
+    }
+}
+
 impl Product {
     pub fn new<T: Into<String>>(name: T) -> Self {
         Self {
@@ -103,21 +113,16 @@ impl Product {
         }
     }
 
+    pub fn id(&self) -> Option<&str> {
+        self.id.as_deref()
+    }
+
     pub fn name(&self) -> &str {
         &self.name
     }
 
     pub fn set_name<T: Into<String>>(mut self, name: T) -> Self {
         self.name = name.into();
-        self
-    }
-
-    pub fn tax_category(&self) -> Option<&ProductTaxCategory> {
-        self.tax_category.as_ref()
-    }
-
-    pub fn set_tax_category(mut self, tax_category: ProductTaxCategory) -> Self {
-        self.tax_category = Some(tax_category);
         self
     }
 
@@ -136,6 +141,15 @@ impl Product {
 
     pub fn set_type(mut self, p_type: EntityType) -> Self {
         self.p_type = Some(p_type);
+        self
+    }
+
+    pub fn tax_category(&self) -> Option<&ProductTaxCategory> {
+        self.tax_category.as_ref()
+    }
+
+    pub fn set_tax_category(mut self, tax_category: ProductTaxCategory) -> Self {
+        self.tax_category = Some(tax_category);
         self
     }
 
@@ -164,6 +178,22 @@ impl Product {
     pub fn set_status(mut self, status: EntityStatus) -> Self {
         self.status = Some(status);
         self
+    }
+
+    pub fn import_meta(&self) -> Option<&serde_json::Value> {
+        self.import_meta.as_ref()
+    }
+
+    pub fn prices(&self) -> Option<&Vec<Price>> {
+        self.prices.as_ref()
+    }
+
+    pub fn created_at(&self) -> Option<&str> {
+        self.created_at.as_deref()
+    }
+
+    pub fn updated_at(&self) -> Option<&str> {
+        self.updated_at.as_deref()
     }
 }
 
@@ -195,5 +225,11 @@ impl std::fmt::Display for ProductTaxCategory {
 impl From<CreateProductRequest> for Product {
     fn from(request: CreateProductRequest) -> Self {
         request.product_data
+    }
+}
+
+impl From<ProductResponse> for (Product, Meta) {
+    fn from(response: ProductResponse) -> (Product, Meta) {
+        (response.data, response.meta)
     }
 }
