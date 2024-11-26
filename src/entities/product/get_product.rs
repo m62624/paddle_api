@@ -1,4 +1,4 @@
-use crate::entities::product::GetProductResponse;
+use crate::entities::product::ProductResponse;
 use crate::error::PaddleError;
 use crate::Client;
 
@@ -10,7 +10,7 @@ impl Client {
         &self,
         id: &str,
         include: Option<Vec<String>>,
-    ) -> Result<GetProductResponse, anyhow::Error> {
+    ) -> Result<ProductResponse, anyhow::Error> {
         let mut url = self.url.join(&format!("products/{}", id))?;
 
         // query
@@ -27,7 +27,7 @@ impl Client {
                 .await?,
         )
         .await?
-        .json::<GetProductResponse>()
+        .json()
         .await?;
 
         Ok(response)

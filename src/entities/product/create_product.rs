@@ -1,4 +1,4 @@
-use crate::entities::product::GetProductResponse;
+use crate::entities::product::ProductResponse;
 use crate::error::PaddleError;
 use crate::Client;
 
@@ -13,7 +13,7 @@ impl Client {
     pub async fn create_product(
         &self,
         product_data: CreateProductRequest,
-    ) -> Result<GetProductResponse, anyhow::Error> {
+    ) -> Result<ProductResponse, anyhow::Error> {
         let url = self.url.join("products")?;
 
         let response = PaddleError::handle_response(
@@ -25,7 +25,7 @@ impl Client {
                 .await?,
         )
         .await?
-        .json::<GetProductResponse>()
+        .json()
         .await?;
 
         Ok(response)

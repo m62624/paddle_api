@@ -41,14 +41,17 @@ async fn test_auth_t_0() -> Result<(), Box<dyn std::error::Error>> {
 #[should_panic]
 async fn test_auth_t_1() {
     let config = Config::new().unwrap();
-    let _client = Client::new(&config.url, "invalid_auth").unwrap();
+    let client = Client::new(&config.url, "invalid_auth").unwrap();
+    client.test_authentication().await.unwrap();
 }
 
 #[tokio::test]
 async fn test_get_product_t_0() -> Result<(), Box<dyn std::error::Error>> {
     let config = CONFIG.clone();
     let client = Client::new(&config.url, &config.auth)?;
-    client.get_product(&config.product_id, None).await?;
+    let r = client.get_product(&config.product_id, None).await?;
+
+    println!("Get product response: {:#?}", r);
     Ok(())
 }
 
@@ -71,8 +74,10 @@ async fn test_get_list_products_t_0() -> Result<(), Box<dyn std::error::Error>> 
         .get_list_products(ListProductsParams::default())
         .await?;
 
-    if r.data().is_empty() {
+    if r.data.is_empty() {
         panic!("No products found");
+    } else {
+        println!("Get list products response: {:#?}", r);
     }
 
     Ok(())
@@ -86,19 +91,41 @@ async fn test_update_product_t_0() -> Result<(), Box<dyn std::error::Error>> {
     let product_id = &config.product_id;
     let name = "AeroEdit Student";
 
-    client
+    let r = client
         .update_product(
             product_id,
-            UpdateProductRequest::new(ProductData::new(name).set_status(ProductStatus::Active)),
+            Product::new(name).set_status(EntityStatus::Active),
         )
         .await?;
 
-    client
+    println!("Update product response (Active): {:#?}", r);
+
+    let r = client
         .update_product(
             product_id,
-            UpdateProductRequest::new(ProductData::new(name).set_status(ProductStatus::Archived)),
+            Product::new(name).set_status(EntityStatus::Archived),
         )
         .await?;
+
+    println!("Update product response (Archived): {:#?}", r);
+
+    Ok(())
+}
+
+#[tokio::test]
+#[ignore]
+async fn test_create_product_t_0() -> Result<(), Box<dyn std::error::Error>> {
+    let config = CONFIG.clone();
+    let client = Client::new(&config.url, &config.auth)?;
+
+    let r = client
+        .create_product(CreateProductRequest::new(
+            "test_p",
+            ProductTaxCategory::Standard,
+        ))
+        .await?;
+
+    println!("Create product response: {:#?}", r);
 
     Ok(())
 }

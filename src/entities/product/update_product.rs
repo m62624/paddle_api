@@ -1,8 +1,8 @@
-use crate::entities::product::GetProductResponse;
+use crate::entities::product::ProductResponse;
 use crate::error::PaddleError;
 use crate::Client;
 
-use super::UpdateProductRequest;
+use super::Product;
 
 impl Client {
     /// Update a product by its ID (PATCH).
@@ -13,8 +13,8 @@ impl Client {
     pub async fn update_product(
         &self,
         product_id: &str,
-        product_data: UpdateProductRequest,
-    ) -> Result<GetProductResponse, anyhow::Error> {
+        product_data: Product,
+    ) -> Result<ProductResponse, anyhow::Error> {
         let url = self.url.join(&format!("products/{}", product_id))?;
 
         let response = PaddleError::handle_response(
@@ -26,7 +26,7 @@ impl Client {
                 .await?,
         )
         .await?
-        .json::<GetProductResponse>()
+        .json::<ProductResponse>()
         .await?;
 
         Ok(response)

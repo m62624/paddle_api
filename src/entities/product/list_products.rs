@@ -1,12 +1,13 @@
-use crate::entities::product::ProductResponse;
+use crate::entities::price::PriceData;
 use crate::error::PaddleError;
 use crate::Client;
 
 use serde::Deserialize;
 
-use super::ProductStatus;
+use super::EntityStatus;
+use super::Product;
 use super::ProductTaxCategory;
-use super::ProductType;
+use crate::entities::EntityType;
 
 // https://developer.paddle.com/api-reference/products/list-products#query-parameters
 #[derive(Deserialize, Default)]
@@ -14,29 +15,45 @@ use super::ProductType;
 pub struct ListProductsParams {
     after: Option<String>,
     id: Option<Vec<String>>,
-    include: Option<Vec<String>>,
+    include: Option<Vec<PriceData>>,
     order_by: Option<String>,
     per_page: Option<u32>,
-    status: Option<Vec<ProductStatus>>,
+    status: Option<Vec<EntityStatus>>,
     tax_category: Option<Vec<ProductTaxCategory>>,
     #[serde(rename = "type")]
-    p_type: Option<ProductType>,
+    p_type: Option<EntityType>,
 }
 
-// https://developer.paddle.com/api-reference/products/list-products#response
 #[derive(Deserialize)]
+// https://developer.paddle.com/api-reference/products/list-products#response
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub struct ListProductsResponse {
-    data: Vec<ProductResponse>,
-    meta: Meta,
+    pub data: Vec<ProductResponseFromList>,
+    pub meta: Meta,
+}
+
+#[derive(Deserialize)]
+#[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
+pub struct ProductResponseFromList {
+    #[serde(flatten)]
+    pub product: Product,
 }
 
 // https://developer.paddle.com/api-reference/products/list-products#response
 #[derive(Deserialize)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub struct Meta {
-    request_id: String,
-    pagination: serde_json::Value,
+    pub request_id: String,
+    pub pagination: Pagination,
+}
+
+#[derive(Deserialize)]
+#[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
+pub struct Pagination {
+    pub per_page: u32,
+    pub next: String,
+    pub has_more: bool,
+    pub estimated_total: u32,
 }
 
 impl ListProductsParams {
@@ -62,12 +79,12 @@ impl ListProductsParams {
         self
     }
 
-    pub fn include(&self) -> Option<&Vec<String>> {
+    pub fn include(&self) -> Option<&Vec<PriceData>> {
         self.include.as_ref()
     }
 
-    pub fn set_include<T: Into<String>>(mut self, include: Vec<T>) -> Self {
-        self.include = Some(include.into_iter().map(Into::into).collect());
+    pub fn set_include(mut self, include: Vec<PriceData>) -> Self {
+        self.include = Some(include);
         self
     }
 
@@ -89,11 +106,11 @@ impl ListProductsParams {
         self
     }
 
-    pub fn status(&self) -> Option<&Vec<ProductStatus>> {
+    pub fn status(&self) -> Option<&Vec<EntityStatus>> {
         self.status.as_ref()
     }
 
-    pub fn set_status(mut self, status: Vec<ProductStatus>) -> Self {
+    pub fn set_status(mut self, status: Vec<EntityStatus>) -> Self {
         self.status = Some(status);
         self
     }
@@ -107,33 +124,13 @@ impl ListProductsParams {
         self
     }
 
-    pub fn p_type(&self) -> Option<&ProductType> {
+    pub fn p_type(&self) -> Option<&EntityType> {
         self.p_type.as_ref()
     }
 
-    pub fn set_p_type(mut self, p_type: ProductType) -> Self {
+    pub fn set_p_type(mut self, p_type: EntityType) -> Self {
         self.p_type = Some(p_type);
         self
-    }
-}
-
-impl ListProductsResponse {
-    pub fn data(&self) -> &Vec<ProductResponse> {
-        &self.data
-    }
-
-    pub fn meta(&self) -> &Meta {
-        &self.meta
-    }
-}
-
-impl Meta {
-    pub fn request_id(&self) -> &str {
-        &self.request_id
-    }
-
-    pub fn pagination(&self) -> &serde_json::Value {
-        &self.pagination
     }
 }
 
@@ -156,8 +153,14 @@ impl Client {
             url.query_pairs_mut().append_pair("id", &id.join(","));
         }
         if let Some(include) = params.include {
-            url.query_pairs_mut()
-                .append_pair("include", &include.join(","));
+            url.query_pairs_mut().append_pair(
+                "include",
+                &include
+                    .iter()
+                    .map(|p| serde_json::to_string(p).unwrap_or_default())
+                    .collect::<Vec<_>>()
+                    .join(","),
+            );
         }
         if let Some(order_by) = params.order_by {
             url.query_pairs_mut().append_pair("order_by", &order_by);

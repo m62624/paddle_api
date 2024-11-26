@@ -1,4 +1,4 @@
-use crate::entities::product::Meta;
+use crate::entities::Meta;
 use reqwest::Response;
 
 use serde::Deserialize;

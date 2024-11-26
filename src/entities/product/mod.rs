@@ -4,67 +4,52 @@ pub mod get_product;
 pub mod list_products;
 pub mod update_product;
 
+use serde_with::skip_serializing_none;
+
 #[cfg(test)]
 mod unit_tests;
 
-use serde::ser::SerializeMap;
 use serde::{Deserialize, Serialize};
+
+use super::price::PriceData;
+use super::{EntityStatus, EntityType, Meta};
 
 /// The request to create a new product.
 #[derive(Serialize)]
+#[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub struct CreateProductRequest {
     #[serde(flatten)]
-    product_data: ProductData,
-}
-
-/// The request to update a product.
-pub struct UpdateProductRequest {
-    product_data: ProductData,
+    product_data: Product,
 }
 
 /// The response to a successful product creation request.
 // https://developer.paddle.com/api-reference/products/get-product#response
 #[derive(Deserialize)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
-pub struct GetProductResponse {
-    data: ProductResponse,
-    meta: Meta,
-}
-/// The response to a successful list products request.
-// https://developer.paddle.com/api-reference/products/overview
-#[derive(Deserialize)]
-#[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub struct ProductResponse {
-    id: String,
-    #[serde(flatten)]
-    data: ProductData,
-    import_meta: Option<serde_json::Value>,
-    created_at: String,
-    updated_at: String,
-}
-
-/// The meta object contains additional information about the request.
-// https://developer.paddle.com/api-reference/products/get-product#response
-#[derive(Deserialize, Debug)]
-pub struct Meta {
-    request_id: String,
+    pub data: Product,
+    pub meta: Meta,
 }
 
 /// Product entities describe the items that customers can purchase. They hold high-level product attributes.
 // https://developer.paddle.com/api-reference/products/overview
-#[derive(Serialize, Deserialize)]
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Default)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
-pub struct ProductData {
-    /// Name of this product.
+pub struct Product {
+    id: Option<String>,
     name: String,
-    tax_category: Option<ProductTaxCategory>,
     description: Option<String>,
     #[serde(rename = "type")]
-    p_type: Option<ProductType>,
+    p_type: Option<super::EntityType>,
+    tax_category: Option<ProductTaxCategory>,
     image_url: Option<String>,
+    status: Option<EntityStatus>,
     custom_data: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    status: Option<ProductStatus>,
+    import_meta: Option<serde_json::Value>,
+    created_at: Option<String>,
+    updated_at: Option<String>,
+    prices: Option<PriceData>,
 }
 
 /// Tax category for this product. Used for charging the correct rate of tax.
@@ -93,61 +78,28 @@ pub enum ProductTaxCategory {
     WebsiteHosting,
 }
 
-#[derive(Serialize, Deserialize, Default)]
-#[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
-pub enum ProductType {
-    #[serde(rename = "custom")]
-    Custom,
-    #[default]
-    #[serde(rename = "standard")]
-    Standard,
-}
-
-#[derive(Serialize, Deserialize, Default)]
-#[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
-pub enum ProductStatus {
-    #[default]
-    #[serde(rename = "active")]
-    Active,
-    #[serde(rename = "archived")]
-    Archived,
-}
-
 impl CreateProductRequest {
     pub fn new<T: Into<String>>(name: T, tax_category: ProductTaxCategory) -> Self {
         Self {
-            product_data: ProductData {
+            product_data: Product {
                 // required
                 name: name.into(),
                 // required
                 tax_category: Some(tax_category),
                 description: None,
                 // default
-                p_type: Some(ProductType::Standard),
-                image_url: None,
-                custom_data: None,
-                status: None,
+                p_type: Some(EntityType::Standard),
+                ..Default::default()
             },
         }
     }
 }
 
-impl UpdateProductRequest {
-    pub fn new(data: ProductData) -> Self {
-        Self { product_data: data }
-    }
-}
-
-impl ProductData {
+impl Product {
     pub fn new<T: Into<String>>(name: T) -> Self {
         Self {
             name: name.into(),
-            tax_category: None,
-            description: None,
-            p_type: None,
-            image_url: None,
-            custom_data: None,
-            status: None,
+            ..Default::default()
         }
     }
 
@@ -178,11 +130,11 @@ impl ProductData {
         self
     }
 
-    pub fn p_type(&self) -> Option<&ProductType> {
+    pub fn p_type(&self) -> Option<&EntityType> {
         self.p_type.as_ref()
     }
 
-    pub fn set_type(mut self, p_type: ProductType) -> Self {
+    pub fn set_type(mut self, p_type: EntityType) -> Self {
         self.p_type = Some(p_type);
         self
     }
@@ -205,111 +157,17 @@ impl ProductData {
         self
     }
 
-    pub fn status(&self) -> Option<&ProductStatus> {
+    pub fn status(&self) -> Option<&EntityStatus> {
         self.status.as_ref()
     }
 
-    pub fn set_status(mut self, status: ProductStatus) -> Self {
+    pub fn set_status(mut self, status: EntityStatus) -> Self {
         self.status = Some(status);
         self
     }
 }
 
-impl ProductResponse {
-    pub fn id(&self) -> &str {
-        &self.id
-    }
-
-    pub fn data(&self) -> &ProductData {
-        &self.data
-    }
-
-    pub fn import_meta(&self) -> Option<&serde_json::Value> {
-        self.import_meta.as_ref()
-    }
-
-    pub fn created_at(&self) -> &str {
-        &self.created_at
-    }
-
-    pub fn updated_at(&self) -> &str {
-        &self.updated_at
-    }
-}
-
-impl GetProductResponse {
-    pub fn data(&self) -> &ProductData {
-        &self.data.data
-    }
-
-    pub fn meta(&self) -> &Meta {
-        &self.meta
-    }
-}
-
-impl Meta {
-    pub fn request_id(&self) -> &str {
-        &self.request_id
-    }
-}
-
-impl Serialize for UpdateProductRequest {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        /*
-        name: String,
-        tax_category: Option<ProductTaxCategory>,
-        description: Option<String>,
-        #[serde(rename = "type")]
-        p_type: Option<ProductType>,
-        image_url: Option<String>,
-        custom_data: Option<serde_json::Value>,
-        status: Option<ProductStatus>,
-             */
-        let mut map = serializer.serialize_map(None)?;
-
-        map.serialize_entry("name", &self.product_data.name)?;
-
-        if let Some(ref tax_category) = self.product_data.tax_category {
-            map.serialize_entry("tax_category", tax_category)?;
-        }
-
-        if let Some(ref description) = self.product_data.description {
-            map.serialize_entry("description", description)?;
-        }
-
-        if let Some(ref p_type) = self.product_data.p_type {
-            map.serialize_entry("type", p_type)?;
-        }
-
-        if let Some(ref image_url) = self.product_data.image_url {
-            map.serialize_entry("image_url", image_url)?;
-        }
-
-        if let Some(ref custom_data) = self.product_data.custom_data {
-            map.serialize_entry("custom_data", custom_data)?;
-        }
-
-        if let Some(ref status) = self.product_data.status {
-            map.serialize_entry("status", status)?;
-        }
-
-        map.end()
-    }
-}
-
-impl std::fmt::Display for ProductType {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            Self::Custom => write!(f, "custom"),
-            Self::Standard => write!(f, "standard"),
-        }
-    }
-}
-
-impl std::fmt::Display for ProductStatus {
+impl std::fmt::Display for EntityStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Self::Active => write!(f, "active"),
@@ -334,14 +192,8 @@ impl std::fmt::Display for ProductTaxCategory {
     }
 }
 
-impl From<CreateProductRequest> for ProductData {
+impl From<CreateProductRequest> for Product {
     fn from(request: CreateProductRequest) -> Self {
-        request.product_data
-    }
-}
-
-impl From<UpdateProductRequest> for ProductData {
-    fn from(request: UpdateProductRequest) -> Self {
         request.product_data
     }
 }
