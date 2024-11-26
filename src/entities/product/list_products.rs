@@ -1,6 +1,7 @@
 use crate::entities::product::ProductResponse;
 use crate::error::PaddleError;
 use crate::Client;
+
 use serde::Deserialize;
 
 use super::ProductStatus;
@@ -43,9 +44,17 @@ impl ListProductsParams {
         Self::default()
     }
 
+    pub fn after(&self) -> Option<&str> {
+        self.after.as_deref()
+    }
+
     pub fn set_after<T: Into<String>>(mut self, after: T) -> Self {
         self.after = Some(after.into());
         self
+    }
+
+    pub fn id(&self) -> Option<&Vec<String>> {
+        self.id.as_ref()
     }
 
     pub fn set_id<T: Into<String>>(mut self, id: Vec<T>) -> Self {
@@ -53,9 +62,17 @@ impl ListProductsParams {
         self
     }
 
+    pub fn include(&self) -> Option<&Vec<String>> {
+        self.include.as_ref()
+    }
+
     pub fn set_include<T: Into<String>>(mut self, include: Vec<T>) -> Self {
         self.include = Some(include.into_iter().map(Into::into).collect());
         self
+    }
+
+    pub fn order_by(&self) -> Option<&str> {
+        self.order_by.as_deref()
     }
 
     pub fn set_order_by<T: Into<String>>(mut self, order_by: T) -> Self {
@@ -63,9 +80,17 @@ impl ListProductsParams {
         self
     }
 
+    pub fn per_page(&self) -> Option<u32> {
+        self.per_page
+    }
+
     pub fn set_per_page(mut self, per_page: u32) -> Self {
         self.per_page = Some(per_page);
         self
+    }
+
+    pub fn status(&self) -> Option<&Vec<ProductStatus>> {
+        self.status.as_ref()
     }
 
     pub fn set_status(mut self, status: Vec<ProductStatus>) -> Self {
@@ -73,9 +98,17 @@ impl ListProductsParams {
         self
     }
 
+    pub fn tax_category(&self) -> Option<&Vec<ProductTaxCategory>> {
+        self.tax_category.as_ref()
+    }
+
     pub fn set_tax_category(mut self, tax_category: Vec<ProductTaxCategory>) -> Self {
         self.tax_category = Some(tax_category);
         self
+    }
+
+    pub fn p_type(&self) -> Option<&ProductType> {
+        self.p_type.as_ref()
     }
 
     pub fn set_p_type(mut self, p_type: ProductType) -> Self {
@@ -110,7 +143,7 @@ impl Client {
     /// ### Arguments
     /// `params` - list products parameters
     // https://developer.paddle.com/api-reference/products/list-products
-    pub async fn list_products(
+    pub async fn get_list_products(
         &self,
         params: ListProductsParams,
     ) -> Result<ListProductsResponse, anyhow::Error> {

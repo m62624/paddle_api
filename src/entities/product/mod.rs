@@ -14,29 +14,12 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize)]
 pub struct CreateProductRequest {
     #[serde(flatten)]
-    pub data: ProductData,
+    product_data: ProductData,
 }
 
 /// The request to update a product.
 pub struct UpdateProductRequest {
-    pub data: ProductData,
-}
-
-/// Product entities describe the items that customers can purchase. They hold high-level product attributes.
-// https://developer.paddle.com/api-reference/products/overview
-#[derive(Serialize, Deserialize)]
-#[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
-pub struct ProductData {
-    /// Name of this product.
-    name: String,
-    tax_category: Option<ProductTaxCategory>,
-    description: Option<String>,
-    #[serde(rename = "type")]
-    p_type: Option<ProductType>,
-    image_url: Option<String>,
-    custom_data: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    status: Option<ProductStatus>,
+    product_data: ProductData,
 }
 
 /// The response to a successful product creation request.
@@ -65,6 +48,23 @@ pub struct ProductResponse {
 #[derive(Deserialize, Debug)]
 pub struct Meta {
     request_id: String,
+}
+
+/// Product entities describe the items that customers can purchase. They hold high-level product attributes.
+// https://developer.paddle.com/api-reference/products/overview
+#[derive(Serialize, Deserialize)]
+#[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
+pub struct ProductData {
+    /// Name of this product.
+    name: String,
+    tax_category: Option<ProductTaxCategory>,
+    description: Option<String>,
+    #[serde(rename = "type")]
+    p_type: Option<ProductType>,
+    image_url: Option<String>,
+    custom_data: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    status: Option<ProductStatus>,
 }
 
 /// Tax category for this product. Used for charging the correct rate of tax.
@@ -114,14 +114,27 @@ pub enum ProductStatus {
 }
 
 impl CreateProductRequest {
-    pub fn new(data: ProductData) -> Self {
-        Self { data }
+    pub fn new<T: Into<String>>(name: T, tax_category: ProductTaxCategory) -> Self {
+        Self {
+            product_data: ProductData {
+                // required
+                name: name.into(),
+                // required
+                tax_category: Some(tax_category),
+                description: None,
+                // default
+                p_type: Some(ProductType::Standard),
+                image_url: None,
+                custom_data: None,
+                status: None,
+            },
+        }
     }
 }
 
 impl UpdateProductRequest {
     pub fn new(data: ProductData) -> Self {
-        Self { data }
+        Self { product_data: data }
     }
 }
 
@@ -138,9 +151,26 @@ impl ProductData {
         }
     }
 
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn set_name<T: Into<String>>(mut self, name: T) -> Self {
+        self.name = name.into();
+        self
+    }
+
+    pub fn tax_category(&self) -> Option<&ProductTaxCategory> {
+        self.tax_category.as_ref()
+    }
+
     pub fn set_tax_category(mut self, tax_category: ProductTaxCategory) -> Self {
         self.tax_category = Some(tax_category);
         self
+    }
+
+    pub fn description(&self) -> Option<&str> {
+        self.description.as_deref()
     }
 
     pub fn set_description<T: Into<String>>(mut self, description: T) -> Self {
@@ -148,9 +178,17 @@ impl ProductData {
         self
     }
 
+    pub fn p_type(&self) -> Option<&ProductType> {
+        self.p_type.as_ref()
+    }
+
     pub fn set_type(mut self, p_type: ProductType) -> Self {
         self.p_type = Some(p_type);
         self
+    }
+
+    pub fn image_url(&self) -> Option<&str> {
+        self.image_url.as_deref()
     }
 
     pub fn set_image_url<T: Into<String>>(mut self, image_url: T) -> Self {
@@ -158,9 +196,17 @@ impl ProductData {
         self
     }
 
+    pub fn custom_data(&self) -> Option<&serde_json::Value> {
+        self.custom_data.as_ref()
+    }
+
     pub fn set_custom_data(mut self, custom_data: serde_json::Value) -> Self {
         self.custom_data = Some(custom_data);
         self
+    }
+
+    pub fn status(&self) -> Option<&ProductStatus> {
+        self.status.as_ref()
     }
 
     pub fn set_status(mut self, status: ProductStatus) -> Self {
@@ -170,39 +216,39 @@ impl ProductData {
 }
 
 impl ProductResponse {
-    pub fn get_id(&self) -> &str {
+    pub fn id(&self) -> &str {
         &self.id
     }
 
-    pub fn get_data(&self) -> &ProductData {
+    pub fn data(&self) -> &ProductData {
         &self.data
     }
 
-    pub fn get_import_meta(&self) -> Option<&serde_json::Value> {
+    pub fn import_meta(&self) -> Option<&serde_json::Value> {
         self.import_meta.as_ref()
     }
 
-    pub fn get_created_at(&self) -> &str {
+    pub fn created_at(&self) -> &str {
         &self.created_at
     }
 
-    pub fn get_updated_at(&self) -> &str {
+    pub fn updated_at(&self) -> &str {
         &self.updated_at
     }
 }
 
 impl GetProductResponse {
-    pub fn get_data(&self) -> &ProductResponse {
-        &self.data
+    pub fn data(&self) -> &ProductData {
+        &self.data.data
     }
 
-    pub fn get_meta(&self) -> &Meta {
+    pub fn meta(&self) -> &Meta {
         &self.meta
     }
 }
 
 impl Meta {
-    pub fn get_request_id(&self) -> &str {
+    pub fn request_id(&self) -> &str {
         &self.request_id
     }
 }
@@ -224,29 +270,29 @@ impl Serialize for UpdateProductRequest {
              */
         let mut map = serializer.serialize_map(None)?;
 
-        map.serialize_entry("name", &self.data.name)?;
+        map.serialize_entry("name", &self.product_data.name)?;
 
-        if let Some(ref tax_category) = self.data.tax_category {
+        if let Some(ref tax_category) = self.product_data.tax_category {
             map.serialize_entry("tax_category", tax_category)?;
         }
 
-        if let Some(ref description) = self.data.description {
+        if let Some(ref description) = self.product_data.description {
             map.serialize_entry("description", description)?;
         }
 
-        if let Some(ref p_type) = self.data.p_type {
+        if let Some(ref p_type) = self.product_data.p_type {
             map.serialize_entry("type", p_type)?;
         }
 
-        if let Some(ref image_url) = self.data.image_url {
+        if let Some(ref image_url) = self.product_data.image_url {
             map.serialize_entry("image_url", image_url)?;
         }
 
-        if let Some(ref custom_data) = self.data.custom_data {
+        if let Some(ref custom_data) = self.product_data.custom_data {
             map.serialize_entry("custom_data", custom_data)?;
         }
 
-        if let Some(ref status) = self.data.status {
+        if let Some(ref status) = self.product_data.status {
             map.serialize_entry("status", status)?;
         }
 
@@ -285,5 +331,17 @@ impl std::fmt::Display for ProductTaxCategory {
             Self::TrainingServices => write!(f, "training-services"),
             Self::WebsiteHosting => write!(f, "website-hosting"),
         }
+    }
+}
+
+impl From<CreateProductRequest> for ProductData {
+    fn from(request: CreateProductRequest) -> Self {
+        request.product_data
+    }
+}
+
+impl From<UpdateProductRequest> for ProductData {
+    fn from(request: UpdateProductRequest) -> Self {
+        request.product_data
     }
 }
