@@ -1,5 +1,4 @@
-use crate::entities::product::list_products::ListProductsParams;
-use crate::entities::product::ProductData;
+
 use crate::Client;
 use std::env;
 
@@ -34,6 +33,11 @@ impl Config {
 
 #[cfg(test)]
 mod tests {
+
+    use crate::entities::product::list_products::ListProductsParams;
+    use crate::entities::product::ProductData;
+    use crate::entities::product::{ProductTaxCategory};
+
     use super::*;
 
     mod client {
@@ -102,7 +106,8 @@ mod tests {
 
             let product_data = ProductData::new(
                 "AeroEdit Student (0)".to_string(),
-                "standard".to_string(),
+                ProductTaxCategory::Standard,
+                
             )
             .set_description("Essential tools for student pilots to manage flight logs, analyze performance, and plan routes, and ensure compliance. Valid student pilot certificate from the FAA required.".to_string())
             .set_image_url("https://paddle.s3.amazonaws.com/user/165798/bT1XUOJAQhOUxGs83cbk_pro.png".to_string())

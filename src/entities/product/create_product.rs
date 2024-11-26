@@ -3,9 +3,9 @@ use crate::Client;
 
 impl<'a> Client<'a> {
     /// Create a new product.
-    /// 
+    ///
     /// If successful, your response includes a copy of the new product entity.
-    /// 
+    ///
     // https://developer.paddle.com/api-reference/products/create-product
     pub async fn create_product(
         &self,

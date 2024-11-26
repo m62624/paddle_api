@@ -3,6 +3,10 @@ use crate::Client;
 use crate::PaddleError;
 use serde::Deserialize;
 
+use super::ProductStatus;
+use super::ProductTaxCategory;
+use super::ProductType;
+
 // https://developer.paddle.com/api-reference/products/list-products#query-parameters
 #[derive(Deserialize, Default)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
@@ -12,10 +16,10 @@ pub struct ListProductsParams {
     include: Option<Vec<String>>,
     order_by: Option<String>,
     per_page: Option<u32>,
-    status: Option<Vec<String>>,
-    tax_category: Option<Vec<String>>,
+    status: Option<Vec<ProductStatus>>,
+    tax_category: Option<Vec<ProductTaxCategory>>,
     #[serde(rename = "type")]
-    p_type: Option<String>,
+    p_type: Option<ProductType>,
 }
 
 // https://developer.paddle.com/api-reference/products/list-products#response
@@ -39,41 +43,42 @@ impl ListProductsParams {
         Self::default()
     }
 
-    pub fn get_after(mut self, after: String) -> Self {
+    pub fn set_after(mut self, after: String) -> Self {
         self.after = Some(after);
         self
     }
 
-    pub fn get_id(mut self, id: Vec<String>) -> Self {
+    pub fn set_id(mut self, id: Vec<String>) -> Self {
         self.id = Some(id);
         self
     }
 
-    pub fn get_include(mut self, include: Vec<String>) -> Self {
+    pub fn set_include(mut self, include: Vec<String>) -> Self {
         self.include = Some(include);
         self
     }
 
-    pub fn get_order_by(mut self, order_by: String) -> Self {
+    pub fn set_order_by(mut self, order_by: String) -> Self {
         self.order_by = Some(order_by);
         self
     }
 
-    pub fn get_per_page(mut self, per_page: u32) -> Self {
+    pub fn set_per_page(mut self, per_page: u32) -> Self {
         self.per_page = Some(per_page);
         self
     }
 
-    pub fn get_status(mut self, status: Vec<String>) -> Self {
+    pub fn set_status(mut self, status: Vec<ProductStatus>) -> Self {
         self.status = Some(status);
         self
     }
 
-    pub fn get_tax_category(mut self, tax_category: Vec<String>) -> Self {
+    pub fn set_tax_category(mut self, tax_category: Vec<ProductTaxCategory>) -> Self {
         self.tax_category = Some(tax_category);
         self
     }
-    pub fn get_p_type(mut self, p_type: String) -> Self {
+
+    pub fn set_p_type(mut self, p_type: ProductType) -> Self {
         self.p_type = Some(p_type);
         self
     }
@@ -129,15 +134,28 @@ impl<'a> Client<'a> {
                 .append_pair("per_page", &per_page.to_string());
         }
         if let Some(status) = params.status {
-            url.query_pairs_mut()
-                .append_pair("status", &status.join(","));
+            url.query_pairs_mut().append_pair(
+                "status",
+                &status
+                    .iter()
+                    .map(|s| s.to_string())
+                    .collect::<Vec<_>>()
+                    .join(","),
+            );
         }
         if let Some(tax_category) = params.tax_category {
-            url.query_pairs_mut()
-                .append_pair("tax_category", &tax_category.join(","));
+            url.query_pairs_mut().append_pair(
+                "tax_category",
+                &tax_category
+                    .iter()
+                    .map(|s| s.to_string())
+                    .collect::<Vec<_>>()
+                    .join(","),
+            );
         }
         if let Some(p_type) = params.p_type {
-            url.query_pairs_mut().append_pair("type", &p_type);
+            url.query_pairs_mut()
+                .append_pair("type", &p_type.to_string());
         }
 
         Ok(self
