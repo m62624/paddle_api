@@ -19,7 +19,7 @@ impl Client {
 
         let response = PaddleError::handle_response(
             self.client
-                .post(url)
+                .patch(url)
                 .headers(self.default_headers()?)
                 .json(&price_data)
                 .send()

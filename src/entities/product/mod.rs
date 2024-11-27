@@ -1,4 +1,3 @@
-pub mod check_auth;
 pub mod create;
 pub mod get;
 pub mod list;

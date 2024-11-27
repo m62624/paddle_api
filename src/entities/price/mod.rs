@@ -25,6 +25,7 @@ pub struct PriceResponse {
 #[derive(Serialize, Deserialize, Default)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub struct Price {
+    #[serde(flatten)]
     base: EntityBase,
     product_id: Option<String>,
     unit_price: Option<UnitPrice>,
@@ -38,7 +39,6 @@ pub struct Price {
 #[derive(Serialize, Deserialize)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub struct BillingCycle {
-
     frequency: i32,
     interval: String,
 }
@@ -104,14 +104,18 @@ pub struct ImportMeta {
 }
 
 impl CreatePriceRequest {
-    pub fn new<T: Into<String>>(description: T, product_id: String, unit_price: UnitPrice) -> Self {
+    pub fn new<D: Into<String>, P: Into<String>>(
+        description: D,
+        product_id: P,
+        unit_price: UnitPrice,
+    ) -> Self {
         Self {
             product_data: Price {
                 base: EntityBase {
                     description: Some(description.into()),
                     ..Default::default()
                 },
-                product_id: Some(product_id),
+                product_id: Some(product_id.into()),
                 unit_price: Some(unit_price),
                 tax_mode: Some(TaxMode::AccountSetting),
                 ..Default::default()
@@ -130,7 +134,7 @@ impl PriceResponse {
     }
 }
 
-impl EntityBaseGettersSetters for Price{
+impl EntityBaseGettersSetters for Price {
     fn id(&self) -> Option<&str> {
         self.base.id.as_deref()
     }
@@ -150,7 +154,7 @@ impl EntityBaseGettersSetters for Price{
     }
 
     fn description(&self) -> Option<&str> {
-         self.base.description.as_deref()
+        self.base.description.as_deref()
     }
 
     fn set_description<T: Into<String>>(self, description: T) -> Self {
@@ -219,8 +223,12 @@ impl EntityBaseGettersSetters for Price{
 }
 
 impl Price {
-    pub fn new() -> Self {
+    pub fn new<T: Into<String>>(description: T) -> Self {
         Self {
+            base: EntityBase {
+                description: Some(description.into()),
+                ..Default::default()
+            },
             ..Default::default()
         }
     }
@@ -285,7 +293,48 @@ impl Price {
         self.quantity = Some(quantity);
         self
     }
+}
 
+impl BillingCycle {
+    pub fn new<T: Into<String>>(frequency: i32, interval: T) -> Self {
+        Self {
+            frequency,
+            interval: interval.into(),
+        }
+    }
+}
+
+impl TrialPeriod {
+    pub fn new(frequency: i32, interval: PriceInterval) -> Self {
+        Self {
+            frequency,
+            interval,
+        }
+    }
+}
+
+impl UnitPrice {
+    pub fn new<A: Into<String>, C: Into<String>>(amount: A, currency_code: C) -> Self {
+        Self {
+            amount: amount.into(),
+            currency_code: currency_code.into(),
+        }
+    }
+}
+
+impl UnitPriceOverride {
+    pub fn new(country_codes: Vec<String>, unit_price: UnitPrice) -> Self {
+        Self {
+            country_codes,
+            unit_price,
+        }
+    }
+}
+
+impl Quantity {
+    pub fn new(minimum: i32, maximum: i32) -> Self {
+        Self { minimum, maximum }
+    }
 }
 
 impl Default for Quantity {

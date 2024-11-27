@@ -4,7 +4,6 @@ pub mod product;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-
 pub trait EntityBaseGettersSetters {
     fn id(&self) -> Option<&str>;
     fn name(&self) -> Option<&str>;
@@ -37,7 +36,6 @@ pub trait BaseListParamsGettersSetters {
     fn set_p_type(self, p_type: EntityType) -> Self;
 }
 
-
 /// The base entity object contains common attributes for all entities.
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Default)]
@@ -57,7 +55,7 @@ pub struct EntityBase {
 
 #[derive(Deserialize, Default)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
-pub struct BaseListParams{
+pub struct BaseListParams {
     after: Option<String>,
     id: Option<Vec<String>>,
     order_by: Option<String>,
@@ -89,23 +87,20 @@ pub enum EntityType {
 
 /// The meta object contains additional information about the request.
 // https://developer.paddle.com/api-reference/products/list-products#response
-#[derive(Deserialize)]
-#[derive(Debug)]
+#[derive(Deserialize, Debug)]
 pub struct Meta {
     pub request_id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pagination: Option<Pagination>,
 }
 
-#[derive(Deserialize)]
-#[derive(Debug)]
+#[derive(Deserialize, Debug)]
 pub struct Pagination {
     pub per_page: u32,
     pub next: String,
     pub has_more: bool,
     pub estimated_total: u32,
 }
-
 
 impl Meta {
     pub fn request_id(&self) -> &str {
