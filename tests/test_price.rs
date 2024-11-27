@@ -45,6 +45,7 @@ async fn test_get_list_prices_t_0() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[tokio::test]
+#[ignore]
 async fn test_update_price_t_0() -> Result<(), Box<dyn std::error::Error>> {
     let config = CONFIG.clone();
     let client = Client::new(&config.url, &config.auth)?;

@@ -3,11 +3,11 @@ use crate::{
     error::PaddleError,
     Client,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use super::Price;
 
-#[derive(Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub struct ListPricesParams {
     #[serde(flatten)]
@@ -166,53 +166,10 @@ impl Client {
         &self,
         params: ListPricesParams,
     ) -> Result<ListPricesResponse, anyhow::Error> {
+        let query = serde_qs::to_string(&params)?;
         let mut url = self.url.join("prices")?;
 
-        if let Some(after) = params.after() {
-            url.query_pairs_mut().append_pair("after", &after);
-        }
-
-        if let Some(id) = params.id() {
-            for i in id {
-                url.query_pairs_mut().append_pair("id", &i);
-            }
-        }
-
-        if let Some(include) = params.include() {
-            url.query_pairs_mut().append_pair(
-                "include",
-                &include
-                    .iter()
-                    .map(|p| serde_json::to_string(p).unwrap_or_default())
-                    .collect::<Vec<_>>()
-                    .join(","),
-            );
-        }
-
-        if let Some(order_by) = params.order_by() {
-            url.query_pairs_mut().append_pair("order_by", &order_by);
-        }
-
-        if let Some(per_page) = params.per_page() {
-            url.query_pairs_mut()
-                .append_pair("per_page", &per_page.to_string());
-        }
-
-        if let Some(status) = params.status() {
-            for s in status {
-                url.query_pairs_mut().append_pair("status", &s.to_string());
-            }
-        }
-
-        if let Some(recurring) = params.recurring() {
-            url.query_pairs_mut()
-                .append_pair("recurring", &recurring.to_string());
-        }
-
-        if let Some(p_type) = params.p_type() {
-            url.query_pairs_mut()
-                .append_pair("type", &p_type.to_string());
-        }
+        url.set_query(Some(&query));
 
         Ok(PaddleError::handle_response(
             self.client

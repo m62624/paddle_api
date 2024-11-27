@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crate::entities::BaseListParams;
 use crate::entities::BaseListParamsGettersSetters;
 use crate::entities::Meta;
@@ -5,6 +7,9 @@ use crate::error::PaddleError;
 use crate::Client;
 
 use serde::Deserialize;
+use serde::Serialize;
+use serde_with::formats::CommaSeparator;
+use serde_with::{serde_as, StringWithSeparator};
 
 use super::EntityStatus;
 use super::Product;
@@ -13,11 +18,13 @@ use super::ProductTaxCategory;
 use crate::entities::EntityType;
 
 // https://developer.paddle.com/api-reference/products/list-products#query-parameters
-#[derive(Deserialize, Default)]
+#[serde_as]
+#[derive(Serialize, Deserialize, Default)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub struct ListProductsParams {
     #[serde(flatten)]
     base: BaseListParams,
+    #[serde_as(as = "Option<StringWithSeparator::<CommaSeparator, ProductTaxCategory>>")]
     tax_category: Option<Vec<ProductTaxCategory>>,
 }
 
@@ -177,55 +184,10 @@ impl Client {
         &self,
         params: ListProductsParams,
     ) -> Result<ListProductsResponse, anyhow::Error> {
+        let query = serde_qs::to_string(&params)?;
         let mut url = self.url.join("products")?;
 
-        if let Some(after) = params.after() {
-            url.query_pairs_mut().append_pair("after", &after);
-        }
-        if let Some(id) = params.id() {
-            url.query_pairs_mut().append_pair("id", &id.join(","));
-        }
-        if let Some(include) = params.include() {
-            url.query_pairs_mut().append_pair(
-                "include",
-                &include
-                    .iter()
-                    .map(|p| serde_json::to_string(p).unwrap_or_default())
-                    .collect::<Vec<_>>()
-                    .join(","),
-            );
-        }
-        if let Some(order_by) = params.order_by() {
-            url.query_pairs_mut().append_pair("order_by", &order_by);
-        }
-        if let Some(per_page) = params.per_page() {
-            url.query_pairs_mut()
-                .append_pair("per_page", &per_page.to_string());
-        }
-        if let Some(status) = params.status() {
-            url.query_pairs_mut().append_pair(
-                "status",
-                &status
-                    .iter()
-                    .map(|s| s.to_string())
-                    .collect::<Vec<_>>()
-                    .join(","),
-            );
-        }
-        if let Some(tax_category) = params.tax_category() {
-            url.query_pairs_mut().append_pair(
-                "tax_category",
-                &tax_category
-                    .iter()
-                    .map(|s| s.to_string())
-                    .collect::<Vec<_>>()
-                    .join(","),
-            );
-        }
-        if let Some(p_type) = params.p_type() {
-            url.query_pairs_mut()
-                .append_pair("type", &p_type.to_string());
-        }
+        url.set_query(Some(&query));
 
         Ok(PaddleError::handle_response(
             self.client
@@ -249,5 +211,24 @@ impl From<ListProductsResponse> for (Vec<ProductResponseFromList>, Meta) {
 impl From<ProductResponseFromList> for Product {
     fn from(p: ProductResponseFromList) -> Self {
         p.product
+    }
+}
+
+impl FromStr for ProductTaxCategory {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "digital-goods" => Ok(Self::DigitalGoods),
+            "ebooks" => Ok(Self::EBooks),
+            "implementation-services" => Ok(Self::ImplementationServices),
+            "professional-services" => Ok(Self::ProfessionalServices),
+            "saas" => Ok(Self::SaaS),
+            "software-programming-services" => Ok(Self::SoftwareProgrammingServices),
+            "standard" => Ok(Self::Standard),
+            "training-services" => Ok(Self::TrainingServices),
+            "website-hosting" => Ok(Self::WebsiteHosting),
+            _ => Err("Unknown product tax category".to_string()),
+        }
     }
 }

@@ -1,5 +1,6 @@
-use crate::entities::price::Price;
+use crate::entities::product::list::ListProductsParams;
 use crate::entities::product::ProductResponse;
+use crate::entities::BaseListParamsGettersSetters;
 use crate::error::PaddleError;
 use crate::Client;
 
@@ -10,14 +11,15 @@ impl Client {
     pub async fn get_product(
         &self,
         id: &str,
-        include: Option<Vec<Price>>,
+        include: Option<Vec<String>>,
     ) -> Result<ProductResponse, anyhow::Error> {
         let mut url = self.url.join(&format!("products/{}", id))?;
 
         // query
         if let Some(include) = include {
-            url.query_pairs_mut()
-                .extend_pairs(include.iter().map(|item| ("include", serde_json::to_string(&item).unwrap_or_default())));
+            url.set_query(Some(&serde_qs::to_string(
+                &ListProductsParams::default().set_include(include),
+            )?));
         }
 
         let response = PaddleError::handle_response(

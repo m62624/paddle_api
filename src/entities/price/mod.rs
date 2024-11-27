@@ -43,7 +43,7 @@ pub struct TrialPeriod {
     interval: PriceInterval,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, PartialEq)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub enum PriceInterval {
     #[serde(rename = "day")]
@@ -56,7 +56,7 @@ pub enum PriceInterval {
     Year,
 }
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, PartialEq)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub enum TaxMode {
     #[default]

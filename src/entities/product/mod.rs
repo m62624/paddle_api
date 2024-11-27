@@ -35,7 +35,7 @@ pub struct Product {
 /// Tax category for this product. Used for charging the correct rate of tax.
 /// Selected tax category must be enabled on your Paddle account.
 /// [Official document](https://developer.paddle.com/api-reference/products/list-products)
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, PartialEq)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub enum ProductTaxCategory {
     #[serde(rename = "digital-goods")]

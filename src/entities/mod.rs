@@ -1,8 +1,16 @@
 pub mod price;
 pub mod product;
 
+use std::str::FromStr;
+
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
+
+use serde_with::formats::CommaSeparator;
+use serde_with::{serde_as, StringWithSeparator};
+
+// use serde_with::formats::CommaSeparator;
+// use serde_with::{serde_as, StringWithSeparator};
 
 /// The base entity object contains common attributes for all entities.
 pub trait EntityBaseGettersSetters {
@@ -10,6 +18,7 @@ pub trait EntityBaseGettersSetters {
     fn id(&self) -> Option<&str>;
     /// Name of the entity
     fn name(&self) -> Option<&str>;
+
     /// Set the name of the entity
     fn set_name<T: Into<String>>(self, name: T) -> Self;
     /// Description of the entity
@@ -102,20 +111,24 @@ pub struct EntityBase {
 }
 
 /// The base list params object contains common attributes for all list params.
-#[derive(Deserialize, Default)]
+#[serde_as]
+#[derive(Serialize, Deserialize, Default)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub struct BaseListParams {
     after: Option<String>,
+    #[serde_as(as = "Option<StringWithSeparator::<CommaSeparator, String>>")]
     id: Option<Vec<String>>,
     order_by: Option<String>,
     per_page: Option<i32>,
+    #[serde_as(as = "Option<StringWithSeparator::<CommaSeparator, String>>")]
     include: Option<Vec<String>>,
+    #[serde_as(as = "Option<StringWithSeparator::<CommaSeparator, EntityStatus>>")]
     status: Option<Vec<EntityStatus>>,
     #[serde(rename = "type")]
     p_type: Option<EntityType>,
 }
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, PartialEq)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub enum EntityStatus {
     /// Entity is active and can be used.
@@ -129,7 +142,7 @@ pub enum EntityStatus {
 
 /// Type of item. Standard items are considered part of your catalog
 /// and are shown on the Paddle web app.
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, PartialEq)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub enum EntityType {
     /// Non-catalog item. Typically created for a specific transaction or\
@@ -163,6 +176,18 @@ pub struct Pagination {
 impl Meta {
     pub fn request_id(&self) -> &str {
         &self.request_id
+    }
+}
+
+impl FromStr for EntityStatus {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "active" => Ok(Self::Active),
+            "archived" => Ok(Self::Archived),
+            _ => Err(anyhow::anyhow!("Invalid EntityStatus")),
+        }
     }
 }
 
