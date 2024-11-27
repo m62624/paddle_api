@@ -1,10 +1,10 @@
 pub mod entities;
 pub mod error;
 
-use serde_json::Value;
 use crate::error::PaddleError;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::Client as RClient;
+use serde_json::Value;
 use url::Url;
 
 /// Paddle API client
@@ -60,7 +60,7 @@ impl Client {
         Ok(headers)
     }
 
-      /// You can test your authentication credentials
+    /// You can test your authentication credentials
     /// by making a request to the Paddle API.
     ///
     /// `403 Forbidden` will be returned if the authentication fails.
