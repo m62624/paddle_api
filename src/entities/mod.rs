@@ -9,8 +9,6 @@ use serde_with::skip_serializing_none;
 use serde_with::formats::CommaSeparator;
 use serde_with::{serde_as, StringWithSeparator};
 
-// use serde_with::formats::CommaSeparator;
-// use serde_with::{serde_as, StringWithSeparator};
 
 /// The base entity object contains common attributes for all entities.
 pub trait EntityBaseGettersSetters {

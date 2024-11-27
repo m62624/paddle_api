@@ -269,6 +269,24 @@ impl BillingCycle {
             interval: interval.into(),
         }
     }
+
+    pub fn frequency(&self) -> i32 {
+        self.frequency
+    }
+
+    pub fn interval(&self) -> &str {
+        &self.interval
+    }
+
+    pub fn set_frequency<T: Into<i32>>(mut self, frequency: T) -> Self {
+        self.frequency = frequency.into();
+        self
+    }
+
+    pub fn set_interval<T: Into<String>>(mut self, interval: T) -> Self {
+        self.interval = interval.into();
+        self
+    }
 }
 
 impl TrialPeriod {
@@ -277,6 +295,24 @@ impl TrialPeriod {
             frequency,
             interval,
         }
+    }
+
+    pub fn frequency(&self) -> i32 {
+        self.frequency
+    }
+
+    pub fn interval(&self) -> &PriceInterval {
+        &self.interval
+    }
+
+    pub fn set_frequency<T: Into<i32>>(mut self, frequency: T) -> Self {
+        self.frequency = frequency.into();
+        self
+    }
+
+    pub fn set_interval(mut self, interval: PriceInterval) -> Self {
+        self.interval = interval;
+        self
     }
 }
 
@@ -287,6 +323,24 @@ impl UnitPrice {
             currency_code: currency_code.into(),
         }
     }
+
+    pub fn amount(&self) -> &str {
+        &self.amount
+    }
+
+    pub fn currency_code(&self) -> &str {
+        &self.currency_code
+    }
+
+    pub fn set_amount<T: Into<String>>(mut self, amount: T) -> Self {
+        self.amount = amount.into();
+        self
+    }
+
+    pub fn set_currency_code<T: Into<String>>(mut self, currency_code: T) -> Self {
+        self.currency_code = currency_code.into();
+        self
+    }
 }
 
 impl UnitPriceOverride {
@@ -295,6 +349,14 @@ impl UnitPriceOverride {
             country_codes,
             unit_price,
         }
+    }
+
+    pub fn country_codes(&self) -> &Vec<String> {
+        &self.country_codes
+    }
+
+    pub fn unit_price(&self) -> &UnitPrice {
+        &self.unit_price
     }
 }
 
