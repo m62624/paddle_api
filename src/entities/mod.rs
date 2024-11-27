@@ -70,6 +70,10 @@ pub trait BaseListParamsGettersSetters {
     /// Check meta.pagination.per_page in the response to see how many were returned.\
     /// `Default: 50; Maximum: 200`.
     fn set_per_page<T: Into<i32>>(self, per_page: T) -> Self;
+    /// Return entities with the specified related entities.
+    fn include(&self) -> Option<&Vec<String>>;
+    /// Include related entities in the response.
+    fn set_include(self, include: Vec<String>) -> Self;
     /// Return entities with the specified status.
     fn status(&self) -> Option<&Vec<EntityStatus>>;
     /// Set the status of the list params
@@ -105,6 +109,7 @@ pub struct BaseListParams {
     id: Option<Vec<String>>,
     order_by: Option<String>,
     per_page: Option<i32>,
+    include: Option<Vec<String>>,
     status: Option<Vec<EntityStatus>>,
     #[serde(rename = "type")]
     p_type: Option<EntityType>,

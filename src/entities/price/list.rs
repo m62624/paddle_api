@@ -1,13 +1,9 @@
-use serde::Deserialize;
-
 use crate::{
-    entities::{
-        product::Product, BaseListParams, BaseListParamsGettersSetters, EntityStatus, EntityType,
-        Meta,
-    },
+    entities::{BaseListParams, BaseListParamsGettersSetters, EntityStatus, EntityType, Meta},
     error::PaddleError,
     Client,
 };
+use serde::Deserialize;
 
 use super::Price;
 
@@ -16,7 +12,6 @@ use super::Price;
 pub struct ListPricesParams {
     #[serde(flatten)]
     base: BaseListParams,
-    include: Option<Vec<Product>>,
     recurring: Option<bool>,
 }
 
@@ -118,20 +113,25 @@ impl BaseListParamsGettersSetters for ListPricesParams {
             ..self
         }
     }
+
+    fn include(&self) -> Option<&Vec<String>> {
+        self.base.include.as_ref()
+    }
+
+    fn set_include(self, include: Vec<String>) -> Self {
+        Self {
+            base: BaseListParams {
+                include: Some(include),
+                ..self.base
+            },
+            ..self
+        }
+    }
 }
 
 impl ListPricesParams {
     pub fn new() -> Self {
         Self::default()
-    }
-
-    pub fn include(&self) -> Option<&Vec<Product>> {
-        self.include.as_ref()
-    }
-
-    pub fn set_include(mut self, include: Vec<Product>) -> Self {
-        self.include = Some(include);
-        self
     }
 
     pub fn recurring(&self) -> Option<bool> {

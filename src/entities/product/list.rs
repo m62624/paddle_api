@@ -1,4 +1,3 @@
-use crate::entities::price::Price;
 use crate::entities::BaseListParams;
 use crate::entities::BaseListParamsGettersSetters;
 use crate::entities::Meta;
@@ -10,6 +9,7 @@ use serde::Deserialize;
 use super::EntityStatus;
 use super::Product;
 use super::ProductTaxCategory;
+
 use crate::entities::EntityType;
 
 // https://developer.paddle.com/api-reference/products/list-products#query-parameters
@@ -18,7 +18,6 @@ use crate::entities::EntityType;
 pub struct ListProductsParams {
     #[serde(flatten)]
     base: BaseListParams,
-    include: Option<Vec<Price>>,   
     tax_category: Option<Vec<ProductTaxCategory>>,
 }
 
@@ -37,19 +36,19 @@ pub struct ProductResponseFromList {
     product: Product,
 }
 
-impl BaseListParamsGettersSetters for ListProductsParams{
+impl BaseListParamsGettersSetters for ListProductsParams {
     fn after(&self) -> Option<&str> {
         self.base.after.as_deref()
     }
 
     fn set_after<T: Into<String>>(self, after: T) -> Self {
-       Self{
-           base: BaseListParams{
-               after: Some(after.into()),
-               ..self.base
-           },
-           ..self
-       }
+        Self {
+            base: BaseListParams {
+                after: Some(after.into()),
+                ..self.base
+            },
+            ..self
+        }
     }
 
     fn id(&self) -> Option<&Vec<String>> {
@@ -57,8 +56,8 @@ impl BaseListParamsGettersSetters for ListProductsParams{
     }
 
     fn set_id<T: Into<Vec<String>>>(self, id: T) -> Self {
-        Self{
-            base: BaseListParams{
+        Self {
+            base: BaseListParams {
                 id: Some(id.into()),
                 ..self.base
             },
@@ -71,8 +70,8 @@ impl BaseListParamsGettersSetters for ListProductsParams{
     }
 
     fn set_order_by<T: Into<String>>(self, order_by: T) -> Self {
-        Self{
-            base: BaseListParams{
+        Self {
+            base: BaseListParams {
                 order_by: Some(order_by.into()),
                 ..self.base
             },
@@ -85,8 +84,8 @@ impl BaseListParamsGettersSetters for ListProductsParams{
     }
 
     fn set_per_page<T: Into<i32>>(self, per_page: T) -> Self {
-        Self{
-            base: BaseListParams{
+        Self {
+            base: BaseListParams {
                 per_page: Some(per_page.into()),
                 ..self.base
             },
@@ -97,24 +96,24 @@ impl BaseListParamsGettersSetters for ListProductsParams{
     fn status(&self) -> Option<&Vec<EntityStatus>> {
         self.base.status.as_ref()
     }
-    
+
     fn set_status(self, status: Vec<EntityStatus>) -> Self {
-         Self{
-            base: BaseListParams{
+        Self {
+            base: BaseListParams {
                 status: Some(status),
                 ..self.base
             },
             ..self
+        }
     }
-}
-    
+
     fn p_type(&self) -> Option<&EntityType> {
         self.base.p_type.as_ref()
     }
-    
+
     fn set_p_type(self, p_type: EntityType) -> Self {
-        Self{
-            base: BaseListParams{
+        Self {
+            base: BaseListParams {
                 p_type: Some(p_type),
                 ..self.base
             },
@@ -122,21 +121,24 @@ impl BaseListParamsGettersSetters for ListProductsParams{
         }
     }
 
-    
+    fn include(&self) -> Option<&Vec<String>> {
+        self.base.include.as_ref()
+    }
+
+    fn set_include(self, include: Vec<String>) -> Self {
+        Self {
+            base: BaseListParams {
+                include: Some(include),
+                ..self.base
+            },
+            ..self
+        }
+    }
 }
 
 impl ListProductsParams {
     pub fn new() -> Self {
         Self::default()
-    }
-
-    pub fn include(&self) -> Option<&Vec<Price>> {
-        self.include.as_ref()
-    }
-
-    pub fn set_include(mut self, include: Vec<Price>) -> Self {
-        self.include = Some(include);
-        self
     }
 
     pub fn tax_category(&self) -> Option<&Vec<ProductTaxCategory>> {
@@ -147,10 +149,7 @@ impl ListProductsParams {
         self.tax_category = Some(tax_category);
         self
     }
-
-   
 }
-
 
 impl ListProductsResponse {
     pub fn data(&self) -> &Vec<ProductResponseFromList> {
