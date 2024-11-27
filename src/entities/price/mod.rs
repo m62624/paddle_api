@@ -3,7 +3,9 @@ pub mod get;
 pub mod list;
 pub mod update;
 
-use super::{EntityBase, EntityBaseGettersSetters, EntityStatus, EntityType, Meta};
+use super::{
+    product::Product, EntityBase, EntityBaseGettersSetters, EntityStatus, EntityType, Meta,
+};
 
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
@@ -28,6 +30,7 @@ pub struct Price {
     tax_mode: Option<TaxMode>,
     unit_price_overrides: Option<Vec<UnitPriceOverride>>,
     quantity: Option<Quantity>,
+    product: Option<Product>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -260,6 +263,10 @@ impl Price {
     pub fn set_quantity(mut self, quantity: Quantity) -> Self {
         self.quantity = Some(quantity);
         self
+    }
+
+    pub fn product(&self) -> Option<&Product> {
+        self.product.as_ref()
     }
 }
 
