@@ -12,7 +12,9 @@ use paddle_api::Client;
 async fn test_get_price_t_0() -> Result<(), Box<dyn std::error::Error>> {
     let config = CONFIG.clone();
     let client = Client::new(&config.url, &config.auth)?;
-    let r = client.get_price(&config.price_id, None).await?;
+    let r = client
+        .get_price::<Vec<_>, String>(&config.price_id, None)
+        .await?;
 
     println!("Get price response: {:#?}", r);
     Ok(())
@@ -24,7 +26,7 @@ async fn test_get_price_t_1() {
     let config = Config::new().unwrap();
     let client = Client::new(&config.url, &config.auth).unwrap();
     let _ = client
-        .get_price("invalprice_id_price_id", None)
+        .get_price::<Vec<_>, String>("invalprice_id_price_id", None)
         .await
         .unwrap();
 }

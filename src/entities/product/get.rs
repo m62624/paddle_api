@@ -1,5 +1,4 @@
-use crate::entities::product::list::ListProductsParams;
-use crate::entities::product::ProductResponse;
+use crate::entities::product::{list::ListProductsParams, ProductResponse};
 use crate::entities::BaseListParamsGettersSetters;
 use crate::error::PaddleError;
 use crate::Client;
@@ -8,11 +7,15 @@ impl Client {
     /// Get a single product by its ID (GET).
     ///
     /// [Official document](https://developer.paddle.com/api-reference/products/get-product)
-    pub async fn get_product(
+    pub async fn get_product<T, I>(
         &self,
         id: &str,
-        include: Option<Vec<String>>,
-    ) -> Result<ProductResponse, anyhow::Error> {
+        include: Option<T>,
+    ) -> Result<ProductResponse, anyhow::Error>
+    where
+        T: IntoIterator<Item = I>,
+        I: Into<String>,
+    {
         let mut url = self.url.join(&format!("products/{}", id))?;
 
         // query

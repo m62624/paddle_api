@@ -3,12 +3,11 @@ pub mod get;
 pub mod list;
 pub mod update;
 
-use serde_with::skip_serializing_none;
-
-use serde::{Deserialize, Serialize};
-
 use super::{EntityBase, EntityBaseGettersSetters, EntityStatus, EntityType, Meta};
 use crate::entities::price::Price;
+
+use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
 /// The response to a successful product creation request.
 // https://developer.paddle.com/api-reference/products/get-product#response

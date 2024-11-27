@@ -4,6 +4,7 @@ pub mod list;
 pub mod update;
 
 use super::{EntityBase, EntityBaseGettersSetters, EntityStatus, EntityType, Meta};
+
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
@@ -344,14 +345,18 @@ impl UnitPrice {
 }
 
 impl UnitPriceOverride {
-    pub fn new(country_codes: Vec<String>, unit_price: UnitPrice) -> Self {
+    pub fn new<T, I>(country_codes: T, unit_price: UnitPrice) -> Self
+    where
+        T: IntoIterator<Item = I>,
+        I: Into<String>,
+    {
         Self {
-            country_codes,
+            country_codes: country_codes.into_iter().map(Into::into).collect(),
             unit_price,
         }
     }
 
-    pub fn country_codes(&self) -> &Vec<String> {
+    pub fn country_codes(&self) -> &[String] {
         &self.country_codes
     }
 

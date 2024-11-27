@@ -1,11 +1,11 @@
+use crate::entities::price::Price;
+use crate::Client;
 use crate::{
     entities::{BaseListParams, BaseListParamsGettersSetters, EntityStatus, EntityType, Meta},
     error::PaddleError,
-    Client,
 };
-use serde::{Deserialize, Serialize};
 
-use super::Price;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Default)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
@@ -48,10 +48,14 @@ impl BaseListParamsGettersSetters for ListPricesParams {
         self.base.id.as_ref()
     }
 
-    fn set_id<T: Into<Vec<String>>>(self, id: T) -> Self {
+    fn set_id<T, I>(self, id: T) -> Self
+    where
+        T: IntoIterator<Item = I>,
+        I: Into<String>,
+    {
         Self {
             base: BaseListParams {
-                id: Some(id.into()),
+                id: Some(id.into_iter().map(Into::into).collect()),
                 ..self.base
             },
             ..self
@@ -86,14 +90,18 @@ impl BaseListParamsGettersSetters for ListPricesParams {
         }
     }
 
-    fn status(&self) -> Option<&Vec<EntityStatus>> {
-        self.base.status.as_ref()
+    fn status(&self) -> Option<&[EntityStatus]> {
+        self.base.status.as_deref()
     }
 
-    fn set_status(self, status: Vec<EntityStatus>) -> Self {
+    fn set_status<T, I>(self, status: T) -> Self
+    where
+        T: IntoIterator<Item = I>,
+        I: Into<EntityStatus>,
+    {
         Self {
             base: BaseListParams {
-                status: Some(status),
+                status: Some(status.into_iter().map(Into::into).collect()),
                 ..self.base
             },
             ..self
@@ -114,14 +122,18 @@ impl BaseListParamsGettersSetters for ListPricesParams {
         }
     }
 
-    fn include(&self) -> Option<&Vec<String>> {
-        self.base.include.as_ref()
+    fn include(&self) -> Option<&[String]> {
+        self.base.include.as_deref()
     }
 
-    fn set_include(self, include: Vec<String>) -> Self {
+    fn set_include<T, I>(self, include: T) -> Self
+    where
+        T: IntoIterator<Item = I>,
+        I: Into<String>,
+    {
         Self {
             base: BaseListParams {
-                include: Some(include),
+                include: Some(include.into_iter().map(Into::into).collect()),
                 ..self.base
             },
             ..self

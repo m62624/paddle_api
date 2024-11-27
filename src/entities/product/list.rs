@@ -1,21 +1,17 @@
 use std::str::FromStr;
 
-use crate::entities::BaseListParams;
-use crate::entities::BaseListParamsGettersSetters;
-use crate::entities::Meta;
+use crate::entities::{
+    BaseListParams, BaseListParamsGettersSetters, EntityStatus, EntityType, Meta,
+};
 use crate::error::PaddleError;
 use crate::Client;
+
+use super::{Product, ProductTaxCategory};
 
 use serde::Deserialize;
 use serde::Serialize;
 use serde_with::formats::CommaSeparator;
 use serde_with::{serde_as, StringWithSeparator};
-
-use super::EntityStatus;
-use super::Product;
-use super::ProductTaxCategory;
-
-use crate::entities::EntityType;
 
 // https://developer.paddle.com/api-reference/products/list-products#query-parameters
 #[serde_as]
@@ -62,10 +58,14 @@ impl BaseListParamsGettersSetters for ListProductsParams {
         self.base.id.as_ref()
     }
 
-    fn set_id<T: Into<Vec<String>>>(self, id: T) -> Self {
+    fn set_id<T, I>(self, id: T) -> Self
+    where
+        T: IntoIterator<Item = I>,
+        I: Into<String>,
+    {
         Self {
             base: BaseListParams {
-                id: Some(id.into()),
+                id: Some(id.into_iter().map(Into::into).collect()),
                 ..self.base
             },
             ..self
@@ -100,14 +100,18 @@ impl BaseListParamsGettersSetters for ListProductsParams {
         }
     }
 
-    fn status(&self) -> Option<&Vec<EntityStatus>> {
-        self.base.status.as_ref()
+    fn status(&self) -> Option<&[EntityStatus]> {
+        self.base.status.as_deref()
     }
 
-    fn set_status(self, status: Vec<EntityStatus>) -> Self {
+    fn set_status<T, I>(self, status: T) -> Self
+    where
+        T: IntoIterator<Item = I>,
+        I: Into<EntityStatus>,
+    {
         Self {
             base: BaseListParams {
-                status: Some(status),
+                status: Some(status.into_iter().map(Into::into).collect()),
                 ..self.base
             },
             ..self
@@ -128,14 +132,18 @@ impl BaseListParamsGettersSetters for ListProductsParams {
         }
     }
 
-    fn include(&self) -> Option<&Vec<String>> {
-        self.base.include.as_ref()
+    fn include(&self) -> Option<&[String]> {
+        self.base.include.as_deref()
     }
 
-    fn set_include(self, include: Vec<String>) -> Self {
+    fn set_include<T, I>(self, include: T) -> Self
+    where
+        T: IntoIterator<Item = I>,
+        I: Into<String>,
+    {
         Self {
             base: BaseListParams {
-                include: Some(include),
+                include: Some(include.into_iter().map(Into::into).collect()),
                 ..self.base
             },
             ..self
@@ -148,18 +156,24 @@ impl ListProductsParams {
         Self::default()
     }
 
-    pub fn tax_category(&self) -> Option<&Vec<ProductTaxCategory>> {
-        self.tax_category.as_ref()
+    pub fn tax_category(&self) -> Option<&[ProductTaxCategory]> {
+        self.tax_category.as_deref()
     }
 
-    pub fn set_tax_category(mut self, tax_category: Vec<ProductTaxCategory>) -> Self {
-        self.tax_category = Some(tax_category);
-        self
+    pub fn set_tax_category<T, I>(self, tax_category: T) -> Self
+    where
+        T: IntoIterator<Item = I>,
+        I: Into<ProductTaxCategory>,
+    {
+        Self {
+            tax_category: Some(tax_category.into_iter().map(Into::into).collect()),
+            ..self
+        }
     }
 }
 
 impl ListProductsResponse {
-    pub fn data(&self) -> &Vec<ProductResponseFromList> {
+    pub fn data(&self) -> &[ProductResponseFromList] {
         &self.data
     }
 

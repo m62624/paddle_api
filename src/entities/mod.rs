@@ -9,7 +9,6 @@ use serde_with::skip_serializing_none;
 use serde_with::formats::CommaSeparator;
 use serde_with::{serde_as, StringWithSeparator};
 
-
 /// The base entity object contains common attributes for all entities.
 pub trait EntityBaseGettersSetters {
     /// Unique Paddle ID
@@ -54,7 +53,10 @@ pub trait BaseListParamsGettersSetters {
     /// Return entities with the specified Paddle IDs.
     fn id(&self) -> Option<&Vec<String>>;
     /// Set the id of the list params
-    fn set_id<T: Into<Vec<String>>>(self, id: T) -> Self;
+    fn set_id<T, I>(self, id: T) -> Self
+    where
+        T: IntoIterator<Item = I>,
+        I: Into<String>;
     /// Order returned entities by the specified field and direction ([ASC] or [DESC]).
     fn order_by(&self) -> Option<&str>;
     /// Order returned entities by the specified field and direction ([ASC] or [DESC]).
@@ -78,13 +80,19 @@ pub trait BaseListParamsGettersSetters {
     /// `Default: 50; Maximum: 200`.
     fn set_per_page<T: Into<i32>>(self, per_page: T) -> Self;
     /// Return entities with the specified related entities.
-    fn include(&self) -> Option<&Vec<String>>;
+    fn include(&self) -> Option<&[String]>;
     /// Include related entities in the response.
-    fn set_include(self, include: Vec<String>) -> Self;
+    fn set_include<T, I>(self, include: T) -> Self
+    where
+        T: IntoIterator<Item = I>,
+        I: Into<String>;
     /// Return entities with the specified status.
-    fn status(&self) -> Option<&Vec<EntityStatus>>;
+    fn status(&self) -> Option<&[EntityStatus]>;
     /// Set the status of the list params
-    fn set_status(self, status: Vec<EntityStatus>) -> Self;
+    fn set_status<T, I>(self, status: T) -> Self
+    where
+        T: IntoIterator<Item = I>,
+        I: Into<EntityStatus>;
     /// Return entities with the specified type.
     fn p_type(&self) -> Option<&EntityType>;
     /// Set the type of the list params
@@ -165,10 +173,10 @@ pub struct Meta {
 
 #[derive(Deserialize, Debug)]
 pub struct Pagination {
-    pub per_page: u32,
+    pub per_page: i32,
     pub next: String,
     pub has_more: bool,
-    pub estimated_total: u32,
+    pub estimated_total: i32,
 }
 
 impl Meta {

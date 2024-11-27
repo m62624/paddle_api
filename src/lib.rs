@@ -27,7 +27,7 @@ impl Client {
         Ok(Self {
             client: RClient::new(),
             auth: auth.into(),
-            url: Url::parse(url.into())?,
+            url: Url::parse(url)?,
             paddle_version: None,
         })
     }

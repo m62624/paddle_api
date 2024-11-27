@@ -10,7 +10,9 @@ use std::{env, sync::Arc};
 pub struct Config {
     pub url: String,
     pub auth: String,
+    #[allow(dead_code)]
     pub product_id: String,
+    #[allow(dead_code)]
     pub price_id: String,
 }
 

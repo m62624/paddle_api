@@ -15,7 +15,9 @@ mod tests_get_product {
     async fn t_0() -> Result<(), Box<dyn std::error::Error>> {
         let config = CONFIG.clone();
         let client = Client::new(&config.url, &config.auth)?;
-        let r = client.get_product(&config.product_id, None).await?;
+        let r = client
+            .get_product::<Vec<_>, String>(&config.product_id, None)
+            .await?;
 
         println!("Get product response: {:#?}", r);
         Ok(())
@@ -26,7 +28,10 @@ mod tests_get_product {
     async fn t_1() {
         let config = Config::new().unwrap();
         let client = Client::new(&config.url, &config.auth).unwrap();
-        let _ = client.get_product("invalid_id", None).await.unwrap();
+        let _ = client
+            .get_product::<Vec<_>, String>("invalid_id", None)
+            .await
+            .unwrap();
     }
 
     #[tokio::test]
@@ -34,10 +39,7 @@ mod tests_get_product {
         let config = CONFIG.clone();
         let client = Client::new(&config.url, &config.auth)?;
         let r = client
-            .get_product(
-                &config.product_id,
-                Some(vec!["prices".to_string(), "X".to_string()]),
-            )
+            .get_product(&config.product_id, Some(vec!["prices", "X"]))
             .await?;
 
         println!("Get product response: {:#?}", r);
@@ -50,7 +52,9 @@ mod tests_get_product {
     async fn t_3() -> Result<(), Box<dyn std::error::Error>> {
         let config = CONFIG.clone();
         let client = Client::new(&config.url, &config.auth)?;
-        let r = client.get_product(&config.product_id, None).await?;
+        let r = client
+            .get_product::<Vec<_>, String>(&config.product_id, None)
+            .await?;
 
         println!("Get product response: {:#?}", r);
 
@@ -121,10 +125,10 @@ mod tests_get_list_products {
             .get_list_products(
                 ListProductsParams::default()
                     .set_id(vec![
-                        "pro_01j7k6xbf7jctjpnx0pz20th7s".to_string(),
-                        "pro_01jcgjpcbfpr4wa8f6zmxwqbng".to_string(),
+                        "pro_01j7k6xbf7jctjpnx0pz20th7s",
+                        "pro_01jcgjpcbfpr4wa8f6zmxwqbng",
                     ])
-                    .set_include(vec!["prices".to_string(), "X".to_string()]),
+                    .set_include(vec!["prices", "X"]),
             )
             .await?;
 
@@ -140,10 +144,7 @@ mod tests_get_list_products {
         let config = CONFIG.clone();
         let client = Client::new(&config.url, &config.auth)?;
         let r = client
-            .get_list_products(
-                ListProductsParams::default()
-                    .set_include(vec!["prices".to_string(), "X".to_string()]),
-            )
+            .get_list_products(ListProductsParams::default().set_include(vec!["prices", "X"]))
             .await?;
 
         println!("Get list products response: {:#?}", r);
@@ -219,26 +220,41 @@ mod tests_get_list_products {
     }
 }
 
-#[tokio::test]
-async fn test_update_product_t_0() -> Result<(), Box<dyn std::error::Error>> {
-    let config = CONFIG.clone();
-    let client = Client::new(&config.url, &config.auth)?;
+mod tests_update_prodcut {
+    use super::*;
 
-    let id = &config.product_id;
+    #[tokio::test]
+    async fn t_0() -> Result<(), Box<dyn std::error::Error>> {
+        let config = CONFIG.clone();
+        let client = Client::new(&config.url, &config.auth)?;
 
-    let r = client
-        .update_product(id, Product::default().set_status(EntityStatus::Active))
-        .await?;
+        let id = &config.product_id;
 
-    println!("Update product response (Active): {:#?}", r);
+        let r = client.get_product::<Vec<_>, String>(id, None).await?;
 
-    let r = client
-        .update_product(id, Product::default().set_status(EntityStatus::Archived))
-        .await?;
+        println!("Get product response: {:#?}", r);
 
-    println!("Update product response (Archived): {:#?}", r);
+        let desc = r.data().description().unwrap();
 
-    Ok(())
+        let r = client
+            .update_product(id, Product::default().set_status(EntityStatus::Active))
+            .await?;
+
+        println!("Update product response (Active): {:#?}", r);
+
+        assert_eq!(r.data().status(), Some(EntityStatus::Active).as_ref());
+        assert_eq!(r.data().description().unwrap(), desc);
+
+        let r = client
+            .update_product(id, Product::default().set_status(EntityStatus::Archived))
+            .await?;
+
+        println!("Update product response (Archived): {:#?}", r);
+
+        assert_eq!(r.data().status(), Some(EntityStatus::Archived).as_ref());
+
+        Ok(())
+    }
 }
 
 #[tokio::test]

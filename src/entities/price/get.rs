@@ -1,5 +1,4 @@
-use crate::entities::price::PriceResponse;
-use crate::entities::BaseListParamsGettersSetters;
+use crate::entities::{price::PriceResponse, BaseListParamsGettersSetters};
 use crate::error::PaddleError;
 use crate::Client;
 
@@ -7,11 +6,15 @@ use super::list::ListPricesParams;
 
 impl Client {
     /// Get a single price by its ID (GET).
-    pub async fn get_price(
+    pub async fn get_price<T, I>(
         &self,
         id: &str,
-        include: Option<Vec<String>>,
-    ) -> Result<PriceResponse, anyhow::Error> {
+        include: Option<T>,
+    ) -> Result<PriceResponse, anyhow::Error>
+    where
+        T: IntoIterator<Item = I>,
+        I: Into<String>,
+    {
         let mut url = self.url.join(&format!("prices/{}", id))?;
 
         // query
