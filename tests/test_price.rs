@@ -2,9 +2,8 @@ mod config;
 
 use config::*;
 
-use paddle_api::entities::price::UnitPrice;
 use paddle_api::entities::{
-    price::{list::ListPricesParams, CreatePriceRequest, Price},
+    price::{list::ListPricesParams, Price},
     EntityBaseGettersSetters, EntityStatus,
 };
 use paddle_api::Client;
@@ -53,10 +52,7 @@ async fn test_update_price_t_0() -> Result<(), Box<dyn std::error::Error>> {
     let price_id = &config.price_id;
 
     let r = client
-        .update_price(
-            price_id,
-            Price::new("desc_t").set_status(EntityStatus::Active),
-        )
+        .update_price(price_id, Price::default().set_status(EntityStatus::Active))
         .await?;
 
     println!("Update price response (Active): {:#?}", r);
@@ -64,7 +60,7 @@ async fn test_update_price_t_0() -> Result<(), Box<dyn std::error::Error>> {
     let r = client
         .update_price(
             price_id,
-            Price::new("desc_t").set_status(EntityStatus::Archived),
+            Price::default().set_status(EntityStatus::Archived),
         )
         .await?;
 
@@ -79,13 +75,7 @@ async fn test_create_price_t_0() -> Result<(), Box<dyn std::error::Error>> {
     let config = CONFIG.clone();
     let client = Client::new(&config.url, &config.auth)?;
 
-    let r = client
-        .create_price(CreatePriceRequest::new(
-            "desc_t",
-            &config.product_id,
-            UnitPrice::new("100", "USD"),
-        ))
-        .await?;
+    let r = client.create_price(Price::default()).await?;
 
     println!("Create price response: {:#?}", r);
 

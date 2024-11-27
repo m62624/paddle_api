@@ -3,7 +3,7 @@ mod config;
 use config::*;
 
 use paddle_api::entities::{
-    product::{list::ListProductsParams, CreateProductRequest, Product, ProductTaxCategory},
+    product::{list::ListProductsParams, Product, ProductTaxCategory},
     EntityBaseGettersSetters, EntityStatus,
 };
 use paddle_api::Client;
@@ -65,16 +65,15 @@ async fn test_update_product_t_0() -> Result<(), Box<dyn std::error::Error>> {
     let client = Client::new(&config.url, &config.auth)?;
 
     let id = &config.product_id;
-    let name = "AeroEdit Student";
 
     let r = client
-        .update_product(id, Product::new(name).set_status(EntityStatus::Active))
+        .update_product(id, Product::default().set_status(EntityStatus::Active))
         .await?;
 
     println!("Update product response (Active): {:#?}", r);
 
     let r = client
-        .update_product(id, Product::new(name).set_status(EntityStatus::Archived))
+        .update_product(id, Product::default().set_status(EntityStatus::Archived))
         .await?;
 
     println!("Update product response (Archived): {:#?}", r);
@@ -89,10 +88,7 @@ async fn test_create_product_t_0() -> Result<(), Box<dyn std::error::Error>> {
     let client = Client::new(&config.url, &config.auth)?;
 
     let r = client
-        .create_product(CreateProductRequest::new(
-            "test_p",
-            ProductTaxCategory::Standard,
-        ))
+        .create_product(Product::default().set_tax_category(ProductTaxCategory::Standard))
         .await?;
 
     println!("Create product response: {:#?}", r);
