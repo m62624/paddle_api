@@ -5,7 +5,6 @@ use crate::Client;
 
 impl Client {
     /// Get a single price by its ID (GET).
-
     pub async fn get_price(
         &self,
         id: &str,

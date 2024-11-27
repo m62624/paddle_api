@@ -161,6 +161,7 @@ impl PriceResponseFromList {
 }
 
 impl Client {
+    /// Get a list of prices (GET).
     pub async fn get_list_prices(
         &self,
         params: ListPricesParams,
