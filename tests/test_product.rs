@@ -4,25 +4,9 @@ use config::*;
 
 use paddle_api::entities::{
     product::{list::ListProductsParams, Product, ProductTaxCategory},
-    EntityBaseGettersSetters, EntityStatus,
+    BaseListParamsGettersSetters, EntityBaseGettersSetters, EntityStatus,
 };
 use paddle_api::Client;
-
-#[tokio::test]
-async fn test_auth_t_0() -> Result<(), Box<dyn std::error::Error>> {
-    let config = CONFIG.clone();
-    let client = Client::new(&config.url, &config.auth)?;
-    client.test_authentication().await?;
-    Ok(())
-}
-
-#[tokio::test]
-#[should_panic]
-async fn test_auth_t_1() {
-    let config = Config::new().unwrap();
-    let client = Client::new(&config.url, "invalid_auth").unwrap();
-    client.test_authentication().await.unwrap();
-}
 
 #[tokio::test]
 async fn test_get_product_t_0() -> Result<(), Box<dyn std::error::Error>> {
@@ -43,17 +27,111 @@ async fn test_get_product_t_1() {
 }
 
 #[tokio::test]
+async fn test_get_product_t_2() -> Result<(), Box<dyn std::error::Error>> {
+    let config = CONFIG.clone();
+    let client = Client::new(&config.url, &config.auth)?;
+    let r = client
+        .get_product(
+            &config.product_id,
+            Some(vec!["prices".to_string(), "X".to_string()]),
+        )
+        .await?;
+
+    assert!(r.data().prices().is_some());
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_get_product_t_3() -> Result<(), Box<dyn std::error::Error>> {
+    let config = CONFIG.clone();
+    let client = Client::new(&config.url, &config.auth)?;
+    let r = client.get_product(&config.product_id, None).await?;
+
+    assert!(r.data().prices().is_none());
+    Ok(())
+}
+
+#[tokio::test]
 async fn test_get_list_products_t_0() -> Result<(), Box<dyn std::error::Error>> {
     let config = CONFIG.clone();
     let client = Client::new(&config.url, &config.auth)?;
     let r = client
-        .get_list_products(ListProductsParams::default())
+        .get_list_products(
+            ListProductsParams::default().set_include(vec!["prices".to_string(), "X".to_string()]),
+        )
         .await?;
 
-    if r.data().is_empty() {
-        panic!("No products found");
+    assert!(!r.data().is_empty() && r.data().len() > 2);
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_get_list_products_t_1() -> Result<(), Box<dyn std::error::Error>> {
+    let config = CONFIG.clone();
+    let client = Client::new(&config.url, &config.auth)?;
+    let r = client
+        .get_list_products(
+            ListProductsParams::default()
+                .set_id(vec![
+                    "pro_01j7k6xbf7jctjpnx0pz20th7s".to_string(),
+                    "pro_01jcgjpcbfpr4wa8f6zmxwqbng".to_string(),
+                ])
+                .set_include(vec!["prices".to_string(), "X".to_string()]),
+        )
+        .await?;
+
+    assert_eq!(r.data().len(), 2);
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_get_list_products_t_2() -> Result<(), Box<dyn std::error::Error>> {
+    let config = CONFIG.clone();
+    let client = Client::new(&config.url, &config.auth)?;
+    let r = client
+        .get_list_products(
+            ListProductsParams::default().set_tax_category(vec![ProductTaxCategory::Standard]),
+        )
+        .await?;
+
+    assert_eq!(r.data().len(), 1);
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_get_list_products_t_3() -> Result<(), Box<dyn std::error::Error>> {
+    let config = CONFIG.clone();
+    let client = Client::new(&config.url, &config.auth)?;
+    let r = client
+        .get_list_products(
+            ListProductsParams::default()
+                .set_status(vec![EntityStatus::Archived, EntityStatus::Active])
+                .set_order_by("status[ASC]"),
+        )
+        .await?;
+
+    if let Some(p) = r.data().first() {
+        assert_eq!(p.product().status(), Some(EntityStatus::Active).as_ref());
     } else {
-        println!("Get list products response: {:#?}", r);
+        panic!("No product found");
+    }
+
+    let r = client
+        .get_list_products(
+            ListProductsParams::default()
+                .set_status(vec![EntityStatus::Archived, EntityStatus::Active])
+                .set_order_by("status[DESC]"),
+        )
+        .await?;
+
+    if let Some(p) = r.data().first() {
+        assert_eq!(p.product().status(), Some(EntityStatus::Archived).as_ref());
+    } else {
+        panic!("No product found");
     }
 
     Ok(())
