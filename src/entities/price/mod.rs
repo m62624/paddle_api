@@ -7,13 +7,6 @@ use super::{EntityBase, EntityBaseGettersSetters, EntityStatus, EntityType, Meta
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
-#[derive(Serialize)]
-#[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
-pub struct CreatePriceRequest {
-    #[serde(flatten)]
-    product_data: Price,
-}
-
 #[derive(Deserialize)]
 #[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
 pub struct PriceResponse {
@@ -101,27 +94,6 @@ pub struct Quantity {
 pub struct ImportMeta {
     imported_from: String,
     external_id: Option<String>,
-}
-
-impl CreatePriceRequest {
-    pub fn new<D: Into<String>, P: Into<String>>(
-        description: D,
-        product_id: P,
-        unit_price: UnitPrice,
-    ) -> Self {
-        Self {
-            product_data: Price {
-                base: EntityBase {
-                    description: Some(description.into()),
-                    ..Default::default()
-                },
-                product_id: Some(product_id.into()),
-                unit_price: Some(unit_price),
-                tax_mode: Some(TaxMode::AccountSetting),
-                ..Default::default()
-            },
-        }
-    }
 }
 
 impl PriceResponse {
@@ -223,18 +195,13 @@ impl EntityBaseGettersSetters for Price {
 }
 
 impl Price {
-    pub fn new<T: Into<String>>(description: T) -> Self {
-        Self {
-            base: EntityBase {
-                description: Some(description.into()),
-                ..Default::default()
-            },
-            ..Default::default()
-        }
-    }
-
     pub fn product_id(&self) -> Option<&str> {
         self.product_id.as_deref()
+    }
+
+    pub fn set_product_id<T: Into<String>>(mut self, product_id: T) -> Self {
+        self.product_id = Some(product_id.into());
+        self
     }
 
     pub fn billing_cycle(&self) -> Option<&BillingCycle> {

@@ -5,19 +5,10 @@ pub mod update;
 
 use serde_with::skip_serializing_none;
 
-
 use serde::{Deserialize, Serialize};
 
-use crate::entities::price::Price;
 use super::{EntityBase, EntityBaseGettersSetters, EntityStatus, EntityType, Meta};
-
-/// The request to create a new product.
-#[derive(Serialize)]
-#[cfg_attr(any(feature = "debug", feature = "logs", test), derive(Debug))]
-pub struct CreateProductRequest {
-    #[serde(flatten)]
-    product_data: Product,
-}
+use crate::entities::price::Price;
 
 /// The response to a successful product creation request.
 // https://developer.paddle.com/api-reference/products/get-product#response
@@ -67,24 +58,6 @@ pub enum ProductTaxCategory {
     WebsiteHosting,
 }
 
-impl CreateProductRequest {
-    pub fn new<T: Into<String>>(name: T, tax_category: ProductTaxCategory) -> Self {
-        Self {
-            product_data: Product {
-                // required
-                base: EntityBase{
-                    name: Some(name.into()),
-                    ..Default::default()
-                },
-                // required
-                tax_category: Some(tax_category),
-                // default
-                ..Default::default()
-            },
-        }
-    }
-}
-
 impl ProductResponse {
     pub fn data(&self) -> &Product {
         &self.data
@@ -95,7 +68,7 @@ impl ProductResponse {
     }
 }
 
-impl EntityBaseGettersSetters for Product{
+impl EntityBaseGettersSetters for Product {
     fn id(&self) -> Option<&str> {
         self.base.id.as_deref()
     }
@@ -115,7 +88,7 @@ impl EntityBaseGettersSetters for Product{
     }
 
     fn description(&self) -> Option<&str> {
-         self.base.description.as_deref()
+        self.base.description.as_deref()
     }
 
     fn set_description<T: Into<String>>(self, description: T) -> Self {
@@ -184,17 +157,6 @@ impl EntityBaseGettersSetters for Product{
 }
 
 impl Product {
-    pub fn new<T: Into<String>>(name: T) -> Self {
-        Self {
-            base: EntityBase{
-                name: Some(name.into()),
-                ..Default::default()
-            },
-            ..Default::default()
-        }
-    }
-
-   
     pub fn tax_category(&self) -> Option<&ProductTaxCategory> {
         self.tax_category.as_ref()
     }
@@ -216,7 +178,6 @@ impl Product {
     pub fn prices(&self) -> Option<&Vec<Price>> {
         self.prices.as_ref()
     }
-
 }
 
 impl std::fmt::Display for EntityStatus {
@@ -241,13 +202,6 @@ impl std::fmt::Display for ProductTaxCategory {
             Self::TrainingServices => write!(f, "training-services"),
             Self::WebsiteHosting => write!(f, "website-hosting"),
         }
-    }
-}
-
-
-impl From<CreateProductRequest> for Product {
-    fn from(request: CreateProductRequest) -> Self {
-        request.product_data
     }
 }
 
